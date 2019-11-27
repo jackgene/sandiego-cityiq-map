@@ -1,6 +1,7 @@
 name := """sandiego-cityiq-map"""
-
+organization := "org.jointheleague"
 version := "1.0-SNAPSHOT"
+maintainer := "Jack Leow"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
