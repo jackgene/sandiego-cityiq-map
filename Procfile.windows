@@ -1,1 +1,1 @@
-web: target\universal\scripts\bin\sandiego-cityiq-map
+web: target\universal\stage\bin\sandiego-cityiq-map
