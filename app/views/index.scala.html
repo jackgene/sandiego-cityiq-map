@@ -13,7 +13,7 @@
     <script type="text/javascript" src="@routes.Assets.versioned("javascripts/app.elm.js")"></script>
     <script type="text/javascript">
       let app = Elm.Main.fullscreen();
-      var openInfoWindow = null;
+      let openInfoWindow = null;
 
       app.ports.googleMapMarkersCmd.subscribe(function (assets) {
         let map = document.querySelector('google-map').map;
