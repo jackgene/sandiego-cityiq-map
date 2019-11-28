@@ -19,7 +19,7 @@ type alias Bounds =
 
 type alias CityIQAsset =
     { assetUid : String
-    , parentAssetUid : String
+    , parentAssetUid : Maybe String
     , assetType : String
     , latitude : Float
     , longitude : Float
@@ -66,8 +66,9 @@ getAssetsCmd accessToken bounds =
                     ++ toString bounds.south
                     ++ ":"
                     ++ toString bounds.east
-                    ++ "&page=0&size=500&q=eventTypes:TFEVT"
+                    ++ "&page=0&size=500"
 
+            --&q=eventTypes:TFEVT"
             cityIqAssetDecoder : Decode.Decoder CityIQAsset
             cityIqAssetDecoder =
                 Decode.map4
@@ -87,7 +88,7 @@ getAssetsCmd accessToken bounds =
                                     CityIQAsset assetUid parentAssetUid assetType lat lng
                     )
                     (Decode.field "assetUid" Decode.string)
-                    (Decode.field "parentAssetUid" Decode.string)
+                    (Decode.field "parentAssetUid" (Decode.maybe Decode.string))
                     (Decode.field "assetType" Decode.string)
                     (Decode.field "coordinates" Decode.string)
 
@@ -175,7 +176,14 @@ update msg model =
                         incomingAssets : Dict String CityIQAsset
                         incomingAssets =
                             List.foldl
-                                (\asset -> \accum -> Dict.insert asset.assetUid asset accum)
+                                (\asset ->
+                                    \accum ->
+                                        if asset.assetType == "NODE" then
+                                            accum
+
+                                        else
+                                            Dict.insert asset.assetUid asset accum
+                                )
                                 Dict.empty
                                 assets
 

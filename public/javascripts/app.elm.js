@@ -9346,7 +9346,13 @@ var _user$project$Main$googleMapMarkersCmd = _elm_lang$core$Native_Platform.outg
 	function (v) {
 		return _elm_lang$core$Native_List.toArray(v).map(
 			function (v) {
-				return {assetUid: v.assetUid, parentAssetUid: v.parentAssetUid, assetType: v.assetType, latitude: v.latitude, longitude: v.longitude};
+				return {
+					assetUid: v.assetUid,
+					parentAssetUid: (v.parentAssetUid.ctor === 'Nothing') ? null : v.parentAssetUid._0,
+					assetType: v.assetType,
+					latitude: v.latitude,
+					longitude: v.longitude
+				};
 			});
 	});
 var _user$project$Main$boundsChangedSub = _elm_lang$core$Native_Platform.incomingPort(
@@ -9432,7 +9438,10 @@ var _user$project$Main$getAssetsCmd = F2(
 							return A5(_user$project$Main$CityIQAsset, assetUid, parentAssetUid, assetType, lat, lng);
 						}),
 					A2(_elm_lang$core$Json_Decode$field, 'assetUid', _elm_lang$core$Json_Decode$string),
-					A2(_elm_lang$core$Json_Decode$field, 'parentAssetUid', _elm_lang$core$Json_Decode$string),
+					A2(
+						_elm_lang$core$Json_Decode$field,
+						'parentAssetUid',
+						_elm_lang$core$Json_Decode$maybe(_elm_lang$core$Json_Decode$string)),
 					A2(_elm_lang$core$Json_Decode$field, 'assetType', _elm_lang$core$Json_Decode$string),
 					A2(_elm_lang$core$Json_Decode$field, 'coordinates', _elm_lang$core$Json_Decode$string));
 				var url = A2(
@@ -9459,7 +9468,7 @@ var _user$project$Main$getAssetsCmd = F2(
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												_elm_lang$core$Basics$toString(bounds.east),
-												'&page=0&size=500&q=eventTypes:TFEVT'))))))));
+												'&page=0&size=500'))))))));
 				var request = _elm_lang$http$Http$request(
 					{
 						method: 'GET',
@@ -9566,7 +9575,7 @@ var _user$project$Main$update = F2(
 								_elm_lang$core$List$foldl,
 								F2(
 									function (asset, accum) {
-										return A3(_elm_lang$core$Dict$insert, asset.assetUid, asset, accum);
+										return _elm_lang$core$Native_Utils.eq(asset.assetType, 'NODE') ? accum : A3(_elm_lang$core$Dict$insert, asset.assetUid, asset, accum);
 									}),
 								_elm_lang$core$Dict$empty,
 								_p9._0._0);

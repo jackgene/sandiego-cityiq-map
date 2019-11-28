@@ -21,9 +21,36 @@
           let infoWindow = new google.maps.InfoWindow({
             content: "uid: " + asset.assetUid
           });
+          let label;
+          switch (asset.assetType) {
+            case 'CAMERA':
+              label = '📷';
+              break;
+
+            case 'MIC':
+              label = '🎤';
+              break;
+
+            case 'ENV_SENSOR':
+              label = '🌡';
+              break;
+
+            case 'EM_SENSOR':
+              label = '⚡️';
+              break;
+
+            case 'NODE':
+              label = '⚙️';
+              break;
+
+            default:
+              label = '';
+          }
           let marker = new google.maps.Marker({
             position: {"lat": asset.latitude, "lng": asset.longitude},
-            map: map
+            map: map,
+            label: label,
+            draggable: true
           });
           marker.addListener('click', function() {
             if (openInfoWindow) openInfoWindow.close();
