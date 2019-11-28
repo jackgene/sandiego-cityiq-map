@@ -9538,10 +9538,7 @@ var _user$project$Main$update = F2(
 						return {
 							ctor: '_Tuple2',
 							_0: _user$project$Main$Authenticated(
-								A2(
-									_user$project$Main$AuthenticatedModel,
-									_p7,
-									{ctor: '[]'})),
+								A2(_user$project$Main$AuthenticatedModel, _p7, _elm_lang$core$Dict$empty)),
 							_1: A2(_user$project$Main$getAssetsCmd, _p7, _p3._0)
 						};
 					} else {
@@ -9560,43 +9557,53 @@ var _user$project$Main$update = F2(
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
 			case 'Authenticated':
-				var _p13 = _p3._0;
+				var _p12 = _p3._0;
 				var _p9 = msg;
 				switch (_p9.ctor) {
 					case 'NewContent':
 						if (_p9._0.ctor === 'Ok') {
-							var _p10 = _p9._0._0;
+							var incomingAssets = A3(
+								_elm_lang$core$List$foldl,
+								F2(
+									function (asset, accum) {
+										return A3(_elm_lang$core$Dict$insert, asset.assetUid, asset, accum);
+									}),
+								_elm_lang$core$Dict$empty,
+								_p9._0._0);
+							var allAssets = A2(_elm_lang$core$Dict$union, _p12.assets, incomingAssets);
+							var newAssets = A2(_elm_lang$core$Dict$diff, incomingAssets, _p12.assets);
 							return {
 								ctor: '_Tuple2',
 								_0: _user$project$Main$Authenticated(
 									_elm_lang$core$Native_Utils.update(
-										_p13,
-										{assets: _p10})),
-								_1: _user$project$Main$googleMapMarkersCmd(_p10)
+										_p12,
+										{assets: allAssets})),
+								_1: _user$project$Main$googleMapMarkersCmd(
+									_elm_lang$core$Dict$values(newAssets))
 							};
 						} else {
-							var _p11 = A2(_elm_lang$core$Debug$log, 'Error', _p9._0._0);
+							var _p10 = A2(_elm_lang$core$Debug$log, 'Error', _p9._0._0);
 							return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 						}
 					case 'NewMapBounds':
 						return {
 							ctor: '_Tuple2',
 							_0: model,
-							_1: A2(_user$project$Main$getAssetsCmd, _p13.accessToken, _p9._0)
+							_1: A2(_user$project$Main$getAssetsCmd, _p12.accessToken, _p9._0)
 						};
 					default:
-						var _p12 = A2(
+						var _p11 = A2(
 							_elm_lang$core$Debug$log,
 							'Unexpected message/state',
 							{ctor: '_Tuple2', _0: _p9, _1: model});
 						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
 			default:
-				var _p14 = msg;
-				var _p15 = A2(
+				var _p13 = msg;
+				var _p14 = A2(
 					_elm_lang$core$Debug$log,
 					'Unexpected message/state',
-					{ctor: '_Tuple2', _0: _p14, _1: model});
+					{ctor: '_Tuple2', _0: _p13, _1: model});
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 		}
 	});

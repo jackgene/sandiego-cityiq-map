@@ -1,6 +1,7 @@
 port module Main exposing (..)
 
 import BasicAuth
+import Dict exposing (Dict)
 import GoogleMap exposing (googleMap, googleMapMarker)
 import GoogleMap.Attributes exposing (apiKey, latitude, longitude, zoom)
 import Html exposing (Html, div, text)
@@ -27,7 +28,7 @@ type alias CityIQAsset =
 
 type alias AuthenticatedModel =
     { accessToken : String
-    , assets : List CityIQAsset
+    , assets : Dict String CityIQAsset
     }
 
 
@@ -151,7 +152,7 @@ update msg model =
         AwaitingAuthentication bounds ->
             case msg of
                 NewAccessToken (Ok accessToken) ->
-                    ( Authenticated (AuthenticatedModel accessToken [])
+                    ( Authenticated (AuthenticatedModel accessToken Dict.empty)
                     , getAssetsCmd accessToken bounds
                     )
 
@@ -170,8 +171,24 @@ update msg model =
         Authenticated authModel ->
             case msg of
                 NewContent (Ok assets) ->
-                    ( Authenticated { authModel | assets = assets }
-                    , googleMapMarkersCmd assets
+                    let
+                        incomingAssets : Dict String CityIQAsset
+                        incomingAssets =
+                            List.foldl
+                                (\asset -> \accum -> Dict.insert asset.assetUid asset accum)
+                                Dict.empty
+                                assets
+
+                        allAssets : Dict String CityIQAsset
+                        allAssets =
+                            Dict.union authModel.assets incomingAssets
+
+                        newAssets : Dict String CityIQAsset
+                        newAssets =
+                            Dict.diff incomingAssets authModel.assets
+                    in
+                    ( Authenticated { authModel | assets = allAssets }
+                    , googleMapMarkersCmd (Dict.values newAssets)
                     )
 
                 NewContent (Err err) ->
