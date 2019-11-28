@@ -12,15 +12,23 @@
     <script type="text/javascript" src="@routes.Assets.versioned("javascripts/app.elm.js")"></script>
     <script type="text/javascript">
       let app = Elm.Main.fullscreen();
+      var openInfoWindow = null;
 
       app.ports.googleMapMarkersCmd.subscribe(function (assets) {
         let map = document.querySelector('google-map').map;
         for (let asset of assets) {
-          new google.maps.Marker({
+          let infoWindow = new google.maps.InfoWindow({
+            content: "uid: " + asset.assetUid
+          });
+          let marker = new google.maps.Marker({
             position: {"lat": asset.latitude, "lng": asset.longitude},
-            map: map,
-            title: asset.assetType
-          })
+            map: map
+          });
+          marker.addListener('click', function() {
+            if (openInfoWindow) openInfoWindow.close();
+            infoWindow.open(map, marker);
+            openInfoWindow = infoWindow;
+          });
         }
       });
       setTimeout(
