@@ -7,7 +7,6 @@
     <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
     <link rel="shortcut icon" type="image/vnd.microsoft.icon"
           href="https://www.jointheleague.org/wp-content/uploads/2017/06/favicon-icon.png">
-    <link rel="import" href="@routes.Assets.versioned("javascripts/google-map/google-map.html")">
   </head>
   <body>
     <script type="text/javascript" src="@routes.Assets.versioned("javascripts/app.elm.js")"></script>
@@ -15,6 +14,16 @@
       let app = Elm.Main.fullscreen();
       let openInfoWindow = null;
 
+      app.ports.initBoundsChangedListenerCmd.subscribe(function (evt) {
+        evt.target.map.addListener(
+          'bounds_changed',
+          function() {
+            app.ports.boundsChangedSub.send(
+              JSON.parse(JSON.stringify(evt.target.map.getBounds()))
+            );
+          }
+        );
+      });
       app.ports.googleMapMarkersCmd.subscribe(function (assets) {
         let map = document.querySelector('google-map').map;
         for (let asset of assets) {
@@ -59,32 +68,6 @@
           });
         }
       });
-      setTimeout(
-        function() {
-          let mapElem = document.querySelector('google-map-wip');
-          mapElem.outerHTML = mapElem.outerHTML.replace(/-wip/g, '');
-          setTimeout(
-            function() {
-              let mapElem = document.querySelector('google-map');
-              mapElem.addEventListener(
-                'google-map-ready',
-                function(evt) {
-                  evt.target.map.addListener(
-                    'bounds_changed',
-                    function() {
-                      app.ports.boundsChangedSub.send(
-                        JSON.parse(JSON.stringify(evt.target.map.getBounds()))
-                      );
-                    }
-                  );
-                }
-              );
-            },
-            0
-          )
-        },
-        0
-      );
     </script>
   </body>
 </html>

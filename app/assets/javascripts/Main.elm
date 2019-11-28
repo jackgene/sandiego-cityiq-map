@@ -4,9 +4,11 @@ import BasicAuth
 import Dict exposing (Dict)
 import GoogleMap exposing (googleMap, googleMapMarker)
 import GoogleMap.Attributes exposing (apiKey, latitude, longitude, zoom)
+import GoogleMap.Events exposing (MapEvent, googleMapReady)
 import Html exposing (Html, div, text)
+import Html.Attributes exposing (href, id, rel)
 import Http
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Value)
 
 
 type alias Bounds =
@@ -40,7 +42,8 @@ type Model
 
 
 type Msg
-    = NewMapBounds Bounds
+    = MapReady MapEvent
+    | NewMapBounds Bounds
     | NewAccessToken (Result Http.Error String)
     | NewContent (Result Http.Error (List CityIQAsset))
 
@@ -66,7 +69,7 @@ getAssetsCmd accessToken bounds =
                     ++ toString bounds.south
                     ++ ":"
                     ++ toString bounds.east
-                    ++ "&page=0&size=500"
+                    ++ "&page=0&size=200"
 
             --&q=eventTypes:TFEVT"
             cityIqAssetDecoder : Decode.Decoder CityIQAsset
@@ -112,6 +115,7 @@ getAssetsCmd accessToken bounds =
 
 
 port googleMapMarkersCmd : List CityIQAsset -> Cmd msg
+port initBoundsChangedListenerCmd : Value -> Cmd msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -119,6 +123,11 @@ update msg model =
     case model of
         AwaitingMapBounds ->
             case msg of
+                MapReady event ->
+                    ( model
+                    , initBoundsChangedListenerCmd event.rawEvent
+                    )
+
                 NewMapBounds bounds ->
                     ( AwaitingAuthentication bounds
                     , Http.send NewAccessToken
@@ -240,21 +249,24 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    case model of
-        Authenticated { assets } ->
-            googleMap [] []
-
-        AwaitingAuthentication _ ->
-            googleMap [] []
-
-        AwaitingMapBounds ->
+    let
+        googleMapView : Html Msg
+        googleMapView =
             googleMap
                 [ latitude 32.71143062
                 , longitude -117.1600173
                 , zoom 15
                 , apiKey "AIzaSyD6jMwmDZ4Bvgee_-mMN4PUqBaK-qitqAg"
+                , googleMapReady MapReady
                 ]
-                []
+                [ Html.node "link" [ rel "import", href "/assets/javascripts/google-map/google-map.html" ] [] ]
+    in
+    case model of
+        Authenticated { assets } -> googleMapView
+
+        AwaitingAuthentication _ -> googleMapView
+
+        AwaitingMapBounds -> googleMapView
 
         FailedAuthentication errorMsg ->
             div [] [ text ("Failed to obtain access token: " ++ errorMsg) ]

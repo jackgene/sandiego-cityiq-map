@@ -8557,6 +8557,121 @@ var _elm_lang$html$Html_Attributes$classList = function (list) {
 };
 var _elm_lang$html$Html_Attributes$style = _elm_lang$virtual_dom$VirtualDom$style;
 
+var _elm_lang$html$Html_Events$keyCode = A2(_elm_lang$core$Json_Decode$field, 'keyCode', _elm_lang$core$Json_Decode$int);
+var _elm_lang$html$Html_Events$targetChecked = A2(
+	_elm_lang$core$Json_Decode$at,
+	{
+		ctor: '::',
+		_0: 'target',
+		_1: {
+			ctor: '::',
+			_0: 'checked',
+			_1: {ctor: '[]'}
+		}
+	},
+	_elm_lang$core$Json_Decode$bool);
+var _elm_lang$html$Html_Events$targetValue = A2(
+	_elm_lang$core$Json_Decode$at,
+	{
+		ctor: '::',
+		_0: 'target',
+		_1: {
+			ctor: '::',
+			_0: 'value',
+			_1: {ctor: '[]'}
+		}
+	},
+	_elm_lang$core$Json_Decode$string);
+var _elm_lang$html$Html_Events$defaultOptions = _elm_lang$virtual_dom$VirtualDom$defaultOptions;
+var _elm_lang$html$Html_Events$onWithOptions = _elm_lang$virtual_dom$VirtualDom$onWithOptions;
+var _elm_lang$html$Html_Events$on = _elm_lang$virtual_dom$VirtualDom$on;
+var _elm_lang$html$Html_Events$onFocus = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'focus',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onBlur = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'blur',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onSubmitOptions = _elm_lang$core$Native_Utils.update(
+	_elm_lang$html$Html_Events$defaultOptions,
+	{preventDefault: true});
+var _elm_lang$html$Html_Events$onSubmit = function (msg) {
+	return A3(
+		_elm_lang$html$Html_Events$onWithOptions,
+		'submit',
+		_elm_lang$html$Html_Events$onSubmitOptions,
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onCheck = function (tagger) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'change',
+		A2(_elm_lang$core$Json_Decode$map, tagger, _elm_lang$html$Html_Events$targetChecked));
+};
+var _elm_lang$html$Html_Events$onInput = function (tagger) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'input',
+		A2(_elm_lang$core$Json_Decode$map, tagger, _elm_lang$html$Html_Events$targetValue));
+};
+var _elm_lang$html$Html_Events$onMouseOut = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseout',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseOver = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseover',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseLeave = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseleave',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseEnter = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseenter',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseUp = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseup',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseDown = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mousedown',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onDoubleClick = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'dblclick',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onClick = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'click',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$Options = F2(
+	function (a, b) {
+		return {stopPropagation: a, preventDefault: b};
+	});
+
 var _elm_lang$http$Native_Http = function() {
 
 
@@ -9271,7 +9386,7 @@ var _kallaspriit$elm_basic_auth$BasicAuth$buildAuthorizationHeader = F2(
 	});
 
 var _user$project$GoogleMap$googleMapMarker = _elm_lang$html$Html$node('google-map-marker');
-var _user$project$GoogleMap$googleMap = _elm_lang$html$Html$node('google-map-wip');
+var _user$project$GoogleMap$googleMap = _elm_lang$html$Html$node('google-map');
 
 var _user$project$GoogleMap_Attributes$zoom = function (level) {
 	return A2(
@@ -9295,52 +9410,48 @@ var _user$project$GoogleMap_Attributes$apiKey = function (key) {
 	return A2(_elm_lang$html$Html_Attributes$attribute, 'api-key', key);
 };
 
-var _user$project$Main$view = function (model) {
-	var _p0 = model;
-	switch (_p0.ctor) {
-		case 'Authenticated':
-			return A2(
-				_user$project$GoogleMap$googleMap,
-				{ctor: '[]'},
-				{ctor: '[]'});
-		case 'AwaitingAuthentication':
-			return A2(
-				_user$project$GoogleMap$googleMap,
-				{ctor: '[]'},
-				{ctor: '[]'});
-		case 'AwaitingMapBounds':
-			return A2(
-				_user$project$GoogleMap$googleMap,
+var _user$project$GoogleMap_Events$MapEvent = F3(
+	function (a, b, c) {
+		return {latitude: a, longitude: b, rawEvent: c};
+	});
+var _user$project$GoogleMap_Events$googleMapReady = function (tagger) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'google-map-ready',
+		A4(
+			_elm_lang$core$Json_Decode$map3,
+			F3(
+				function (lat, lng, raw) {
+					return tagger(
+						A3(_user$project$GoogleMap_Events$MapEvent, lat, lng, raw));
+				}),
+			A2(
+				_elm_lang$core$Json_Decode$at,
 				{
 					ctor: '::',
-					_0: _user$project$GoogleMap_Attributes$latitude(32.71143062),
+					_0: 'target',
 					_1: {
 						ctor: '::',
-						_0: _user$project$GoogleMap_Attributes$longitude(-117.1600173),
-						_1: {
-							ctor: '::',
-							_0: _user$project$GoogleMap_Attributes$zoom(15),
-							_1: {
-								ctor: '::',
-								_0: _user$project$GoogleMap_Attributes$apiKey('AIzaSyD6jMwmDZ4Bvgee_-mMN4PUqBaK-qitqAg'),
-								_1: {ctor: '[]'}
-							}
-						}
+						_0: 'latitude',
+						_1: {ctor: '[]'}
 					}
 				},
-				{ctor: '[]'});
-		default:
-			return A2(
-				_elm_lang$html$Html$div,
-				{ctor: '[]'},
+				_elm_lang$core$Json_Decode$float),
+			A2(
+				_elm_lang$core$Json_Decode$at,
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html$text(
-						A2(_elm_lang$core$Basics_ops['++'], 'Failed to obtain access token: ', _p0._0)),
-					_1: {ctor: '[]'}
-				});
-	}
+					_0: 'target',
+					_1: {
+						ctor: '::',
+						_0: 'longitude',
+						_1: {ctor: '[]'}
+					}
+				},
+				_elm_lang$core$Json_Decode$float),
+			_elm_lang$core$Json_Decode$value));
 };
+
 var _user$project$Main$googleMapMarkersCmd = _elm_lang$core$Native_Platform.outgoingPort(
 	'googleMapMarkersCmd',
 	function (v) {
@@ -9354,6 +9465,11 @@ var _user$project$Main$googleMapMarkersCmd = _elm_lang$core$Native_Platform.outg
 					longitude: v.longitude
 				};
 			});
+	});
+var _user$project$Main$initBoundsChangedListenerCmd = _elm_lang$core$Native_Platform.outgoingPort(
+	'initBoundsChangedListenerCmd',
+	function (v) {
+		return v;
 	});
 var _user$project$Main$boundsChangedSub = _elm_lang$core$Native_Platform.incomingPort(
 	'boundsChangedSub',
@@ -9415,26 +9531,26 @@ var _user$project$Main$getAssetsCmd = F2(
 					_elm_lang$core$Json_Decode$map4,
 					F4(
 						function (assetUid, parentAssetUid, assetType, coordinates) {
-							var _p1 = function () {
-								var _p2 = A2(_elm_lang$core$String$split, ':', coordinates);
-								if (((_p2.ctor === '::') && (_p2._1.ctor === '::')) && (_p2._1._1.ctor === '[]')) {
+							var _p0 = function () {
+								var _p1 = A2(_elm_lang$core$String$split, ':', coordinates);
+								if (((_p1.ctor === '::') && (_p1._1.ctor === '::')) && (_p1._1._1.ctor === '[]')) {
 									return {
 										ctor: '_Tuple2',
 										_0: A2(
 											_elm_lang$core$Result$withDefault,
 											0.0,
-											_elm_lang$core$String$toFloat(_p2._0)),
+											_elm_lang$core$String$toFloat(_p1._0)),
 										_1: A2(
 											_elm_lang$core$Result$withDefault,
 											0.0,
-											_elm_lang$core$String$toFloat(_p2._1._0))
+											_elm_lang$core$String$toFloat(_p1._1._0))
 									};
 								} else {
 									return {ctor: '_Tuple2', _0: 0.0, _1: 0.0};
 								}
 							}();
-							var lat = _p1._0;
-							var lng = _p1._1;
+							var lat = _p0._0;
+							var lng = _p0._1;
 							return A5(_user$project$Main$CityIQAsset, assetUid, parentAssetUid, assetType, lat, lng);
 						}),
 					A2(_elm_lang$core$Json_Decode$field, 'assetUid', _elm_lang$core$Json_Decode$string),
@@ -9468,7 +9584,7 @@ var _user$project$Main$getAssetsCmd = F2(
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												_elm_lang$core$Basics$toString(bounds.east),
-												'&page=0&size=500'))))))));
+												'&page=0&size=100'))))))));
 				var request = _elm_lang$http$Http$request(
 					{
 						method: 'GET',
@@ -9502,75 +9618,82 @@ var _user$project$Main$NewAccessToken = function (a) {
 };
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p3 = model;
-		switch (_p3.ctor) {
+		var _p2 = model;
+		switch (_p2.ctor) {
 			case 'AwaitingMapBounds':
-				var _p4 = msg;
-				if (_p4.ctor === 'NewMapBounds') {
-					return {
-						ctor: '_Tuple2',
-						_0: _user$project$Main$AwaitingAuthentication(_p4._0),
-						_1: A2(
-							_elm_lang$http$Http$send,
-							_user$project$Main$NewAccessToken,
-							function () {
-								var accessTokenDecoder = A2(_elm_lang$core$Json_Decode$field, 'access_token', _elm_lang$core$Json_Decode$string);
-								var request = _elm_lang$http$Http$request(
-									{
-										method: 'GET',
-										headers: {
-											ctor: '::',
-											_0: A2(_kallaspriit$elm_basic_auth$BasicAuth$buildAuthorizationHeader, 'PublicAccess', 'uVeeMuiue4k='),
-											_1: {ctor: '[]'}
-										},
-										url: 'https://auth.aa.cityiq.io/oauth/token?grant_type=client_credentials',
-										body: _elm_lang$http$Http$emptyBody,
-										expect: _elm_lang$http$Http$expectJson(accessTokenDecoder),
-										timeout: _elm_lang$core$Maybe$Nothing,
-										withCredentials: false
-									});
-								return request;
-							}())
-					};
-				} else {
-					var _p5 = A2(
-						_elm_lang$core$Debug$log,
-						'Unexpected message/state',
-						{ctor: '_Tuple2', _0: _p4, _1: model});
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				var _p3 = msg;
+				switch (_p3.ctor) {
+					case 'MapReady':
+						return {
+							ctor: '_Tuple2',
+							_0: model,
+							_1: _user$project$Main$initBoundsChangedListenerCmd(_p3._0.rawEvent)
+						};
+					case 'NewMapBounds':
+						return {
+							ctor: '_Tuple2',
+							_0: _user$project$Main$AwaitingAuthentication(_p3._0),
+							_1: A2(
+								_elm_lang$http$Http$send,
+								_user$project$Main$NewAccessToken,
+								function () {
+									var accessTokenDecoder = A2(_elm_lang$core$Json_Decode$field, 'access_token', _elm_lang$core$Json_Decode$string);
+									var request = _elm_lang$http$Http$request(
+										{
+											method: 'GET',
+											headers: {
+												ctor: '::',
+												_0: A2(_kallaspriit$elm_basic_auth$BasicAuth$buildAuthorizationHeader, 'PublicAccess', 'uVeeMuiue4k='),
+												_1: {ctor: '[]'}
+											},
+											url: 'https://auth.aa.cityiq.io/oauth/token?grant_type=client_credentials',
+											body: _elm_lang$http$Http$emptyBody,
+											expect: _elm_lang$http$Http$expectJson(accessTokenDecoder),
+											timeout: _elm_lang$core$Maybe$Nothing,
+											withCredentials: false
+										});
+									return request;
+								}())
+						};
+					default:
+						var _p4 = A2(
+							_elm_lang$core$Debug$log,
+							'Unexpected message/state',
+							{ctor: '_Tuple2', _0: _p3, _1: model});
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
 			case 'AwaitingAuthentication':
-				var _p6 = msg;
-				if (_p6.ctor === 'NewAccessToken') {
-					if (_p6._0.ctor === 'Ok') {
-						var _p7 = _p6._0._0;
+				var _p5 = msg;
+				if (_p5.ctor === 'NewAccessToken') {
+					if (_p5._0.ctor === 'Ok') {
+						var _p6 = _p5._0._0;
 						return {
 							ctor: '_Tuple2',
 							_0: _user$project$Main$Authenticated(
-								A2(_user$project$Main$AuthenticatedModel, _p7, _elm_lang$core$Dict$empty)),
-							_1: A2(_user$project$Main$getAssetsCmd, _p7, _p3._0)
+								A2(_user$project$Main$AuthenticatedModel, _p6, _elm_lang$core$Dict$empty)),
+							_1: A2(_user$project$Main$getAssetsCmd, _p6, _p2._0)
 						};
 					} else {
 						return {
 							ctor: '_Tuple2',
 							_0: _user$project$Main$FailedAuthentication(
-								_elm_lang$core$Basics$toString(_p6._0._0)),
+								_elm_lang$core$Basics$toString(_p5._0._0)),
 							_1: _elm_lang$core$Platform_Cmd$none
 						};
 					}
 				} else {
-					var _p8 = A2(
+					var _p7 = A2(
 						_elm_lang$core$Debug$log,
 						'Unexpected message/state',
-						{ctor: '_Tuple2', _0: _p6, _1: model});
+						{ctor: '_Tuple2', _0: _p5, _1: model});
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
 			case 'Authenticated':
-				var _p12 = _p3._0;
-				var _p9 = msg;
-				switch (_p9.ctor) {
+				var _p11 = _p2._0;
+				var _p8 = msg;
+				switch (_p8.ctor) {
 					case 'NewContent':
-						if (_p9._0.ctor === 'Ok') {
+						if (_p8._0.ctor === 'Ok') {
 							var incomingAssets = A3(
 								_elm_lang$core$List$foldl,
 								F2(
@@ -9578,41 +9701,41 @@ var _user$project$Main$update = F2(
 										return _elm_lang$core$Native_Utils.eq(asset.assetType, 'NODE') ? accum : A3(_elm_lang$core$Dict$insert, asset.assetUid, asset, accum);
 									}),
 								_elm_lang$core$Dict$empty,
-								_p9._0._0);
-							var allAssets = A2(_elm_lang$core$Dict$union, _p12.assets, incomingAssets);
-							var newAssets = A2(_elm_lang$core$Dict$diff, incomingAssets, _p12.assets);
+								_p8._0._0);
+							var allAssets = A2(_elm_lang$core$Dict$union, _p11.assets, incomingAssets);
+							var newAssets = A2(_elm_lang$core$Dict$diff, incomingAssets, _p11.assets);
 							return {
 								ctor: '_Tuple2',
 								_0: _user$project$Main$Authenticated(
 									_elm_lang$core$Native_Utils.update(
-										_p12,
+										_p11,
 										{assets: allAssets})),
 								_1: _user$project$Main$googleMapMarkersCmd(
 									_elm_lang$core$Dict$values(newAssets))
 							};
 						} else {
-							var _p10 = A2(_elm_lang$core$Debug$log, 'Error', _p9._0._0);
+							var _p9 = A2(_elm_lang$core$Debug$log, 'Error', _p8._0._0);
 							return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 						}
 					case 'NewMapBounds':
 						return {
 							ctor: '_Tuple2',
 							_0: model,
-							_1: A2(_user$project$Main$getAssetsCmd, _p12.accessToken, _p9._0)
+							_1: A2(_user$project$Main$getAssetsCmd, _p11.accessToken, _p8._0)
 						};
 					default:
-						var _p11 = A2(
+						var _p10 = A2(
 							_elm_lang$core$Debug$log,
 							'Unexpected message/state',
-							{ctor: '_Tuple2', _0: _p9, _1: model});
+							{ctor: '_Tuple2', _0: _p8, _1: model});
 						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
 			default:
-				var _p13 = msg;
-				var _p14 = A2(
+				var _p12 = msg;
+				var _p13 = A2(
 					_elm_lang$core$Debug$log,
 					'Unexpected message/state',
-					{ctor: '_Tuple2', _0: _p13, _1: model});
+					{ctor: '_Tuple2', _0: _p12, _1: model});
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 		}
 	});
@@ -9621,6 +9744,70 @@ var _user$project$Main$NewMapBounds = function (a) {
 };
 var _user$project$Main$subscriptions = function (model) {
 	return _user$project$Main$boundsChangedSub(_user$project$Main$NewMapBounds);
+};
+var _user$project$Main$MapReady = function (a) {
+	return {ctor: 'MapReady', _0: a};
+};
+var _user$project$Main$view = function (model) {
+	var googleMapView = A2(
+		_user$project$GoogleMap$googleMap,
+		{
+			ctor: '::',
+			_0: _user$project$GoogleMap_Attributes$latitude(32.71143062),
+			_1: {
+				ctor: '::',
+				_0: _user$project$GoogleMap_Attributes$longitude(-117.1600173),
+				_1: {
+					ctor: '::',
+					_0: _user$project$GoogleMap_Attributes$zoom(15),
+					_1: {
+						ctor: '::',
+						_0: _user$project$GoogleMap_Attributes$apiKey('AIzaSyD6jMwmDZ4Bvgee_-mMN4PUqBaK-qitqAg'),
+						_1: {
+							ctor: '::',
+							_0: _user$project$GoogleMap_Events$googleMapReady(_user$project$Main$MapReady),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}
+		},
+		{
+			ctor: '::',
+			_0: A3(
+				_elm_lang$html$Html$node,
+				'link',
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$rel('import'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$href('/assets/javascripts/google-map/google-map.html'),
+						_1: {ctor: '[]'}
+					}
+				},
+				{ctor: '[]'}),
+			_1: {ctor: '[]'}
+		});
+	var _p14 = model;
+	switch (_p14.ctor) {
+		case 'Authenticated':
+			return googleMapView;
+		case 'AwaitingAuthentication':
+			return googleMapView;
+		case 'AwaitingMapBounds':
+			return googleMapView;
+		default:
+			return A2(
+				_elm_lang$html$Html$div,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(
+						A2(_elm_lang$core$Basics_ops['++'], 'Failed to obtain access token: ', _p14._0)),
+					_1: {ctor: '[]'}
+				});
+	}
 };
 var _user$project$Main$main = _elm_lang$html$Html$program(
 	{init: _user$project$Main$init, update: _user$project$Main$update, subscriptions: _user$project$Main$subscriptions, view: _user$project$Main$view})();
@@ -9634,6 +9821,11 @@ Elm['GoogleMap'] = Elm['GoogleMap'] || {};
 Elm['GoogleMap']['Attributes'] = Elm['GoogleMap']['Attributes'] || {};
 if (typeof _user$project$GoogleMap_Attributes$main !== 'undefined') {
     _user$project$GoogleMap_Attributes$main(Elm['GoogleMap']['Attributes'], 'GoogleMap.Attributes', undefined);
+}
+Elm['GoogleMap'] = Elm['GoogleMap'] || {};
+Elm['GoogleMap']['Events'] = Elm['GoogleMap']['Events'] || {};
+if (typeof _user$project$GoogleMap_Events$main !== 'undefined') {
+    _user$project$GoogleMap_Events$main(Elm['GoogleMap']['Events'], 'GoogleMap.Events', undefined);
 }
 Elm['Main'] = Elm['Main'] || {};
 if (typeof _user$project$Main$main !== 'undefined') {
