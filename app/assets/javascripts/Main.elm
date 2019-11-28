@@ -4,7 +4,6 @@ import BasicAuth
 import GoogleMap exposing (googleMap, googleMapMarker)
 import GoogleMap.Attributes exposing (apiKey, latitude, longitude, zoom)
 import Html exposing (Html, div, text)
-import Html.Attributes exposing (title)
 import Http
 import Json.Decode as Decode
 
@@ -58,7 +57,7 @@ getAssetsCmd accessToken bounds =
         (let
             url : String
             url =
-                "https://sandiego.cityiq.io/api/v2/metadata/assets/search?bbox="
+                "/proxy/https://sandiego.cityiq.io/api/v2/metadata/assets/search?bbox="
                     ++ toString bounds.north
                     ++ ":"
                     ++ toString bounds.west
@@ -209,6 +208,7 @@ update msg model =
 port boundsChangedSub : (Bounds -> msg) -> Sub msg
 
 
+subscriptions : Model -> Sub Msg
 subscriptions model =
     boundsChangedSub NewMapBounds
 

@@ -8,6 +8,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 scalaVersion := "2.13.0"
 
 libraryDependencies += guice
+libraryDependencies += ws
 
 val elmMake = taskKey[Seq[File]]("elm-make")
 
@@ -28,7 +29,7 @@ elmMake := {
   Seq(
     "bash", "-c",
     "elm-make " +
-    (file("javascripts") ** "*.elm").get.mkString(" ") +
+    (file("app/assets/javascripts") ** "*.elm").get.mkString(" ") +
     s" --output ${outputPath} " +
     s"--yes ${debugFlag} --warn"
   ).!(

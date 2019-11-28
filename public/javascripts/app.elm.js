@@ -9437,7 +9437,7 @@ var _user$project$Main$getAssetsCmd = F2(
 					A2(_elm_lang$core$Json_Decode$field, 'coordinates', _elm_lang$core$Json_Decode$string));
 				var url = A2(
 					_elm_lang$core$Basics_ops['++'],
-					'https://sandiego.cityiq.io/api/v2/metadata/assets/search?bbox=',
+					'/proxy/https://sandiego.cityiq.io/api/v2/metadata/assets/search?bbox=',
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						_elm_lang$core$Basics$toString(bounds.north),
