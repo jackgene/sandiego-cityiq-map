@@ -28,7 +28,7 @@ elmMake := {
   Seq(
     "bash", "-c",
     "elm-make " +
-    (file("app/assets/javascripts") ** "*.elm").get.mkString(" ") +
+    (file("javascripts") ** "*.elm").get.mkString(" ") +
     s" --output ${outputPath} " +
     s"--yes ${debugFlag} --warn"
   ).!(
@@ -74,7 +74,7 @@ elmMake := {
           lineNumber = lineNum.map(_.toInt).getOrElse(0),
           characterOffset = offset.map(_.indexOf('^') - 2 - lineNum.map(_.length).getOrElse(0)).getOrElse(0),
           lineContent = "",
-          source = file(srcFilePath.getOrElse("app/assets/javascripts/Main.elm"))
+          source = file(srcFilePath.getOrElse("javascripts/Main.elm"))
         )
       )
   }
