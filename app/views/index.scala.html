@@ -12,9 +12,11 @@
     <script type="text/javascript" src="@routes.Assets.versioned("javascripts/webcomponentsjs/webcomponents-lite.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.versioned("javascripts/app.elm.js")"></script>
     <script type="text/javascript">
-      let app = Elm.Main.fullscreen();
+      const OVERLAP_SHIFT = 0.00001;
+      const app = Elm.Main.fullscreen();
+
       let map = null;
-      let mapMarkers = [];
+      let mapMarkers = {};
       let openInfoWindow = null;
       const date = new Date();
 
@@ -73,29 +75,33 @@
             default:
               label = '';
           }
+          let lat = asset.latitude, lng = asset.longitude;
+          while (typeof mapMarkers[lat + '-' + lng] !== 'undefined') {
+            lat -= OVERLAP_SHIFT;
+            lng += OVERLAP_SHIFT;
+          }
           let marker = new google.maps.Marker({
-            position: {"lat": asset.latitude, "lng": asset.longitude},
+            position: {"lat": lat, "lng": lng},
             map: map.map,
-            label: label,
-            draggable: true
+            label: label
           });
           marker.addListener('click', function() {
             if (openInfoWindow) openInfoWindow.close();
-            if (openInfoWindow != infoWindow) {
+            if (openInfoWindow !== infoWindow) {
               infoWindow.open(map.map, marker);
               openInfoWindow = infoWindow;
             } else {
               openInfoWindow = null;
             }
           });
-          mapMarkers.push(marker);
+          mapMarkers[lat + '-' + lng] = marker;
         }
       });
       app.ports.clearGoogleMapMarkersCmd.subscribe(function () {
-        for (let marker of mapMarkers) {
-          marker.setMap(null);
+        for (let position in mapMarkers) {
+          mapMarkers[position].setMap(null);
         }
-        mapMarkers = [];
+        mapMarkers = {};
       });
     </script>
   </body>
