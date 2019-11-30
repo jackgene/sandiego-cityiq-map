@@ -435,13 +435,13 @@ view model =
                 [ text "📷 CAMERA" ]
             , option
                 [ value "MIC", selected (assetType == "MIC") ]
-                [ text "🎤 (MIC)" ]
+                [ text "🎤 MIC" ]
             , option
                 [ value "ENV_SENSOR", selected (assetType == "ENV_SENSOR") ]
-                [ text "🌡 (ENV_SENSOR)" ]
+                [ text "🌡 ENV_SENSOR" ]
             , option
                 [ value "EM_SENSOR", selected (assetType == "EM_SENSOR") ]
-                [ text "⚡️ (EM_SENSOR)" ]
+                [ text "⚡️ EM_SENSOR" ]
             ]
         , div [ id "console" ]
             (case model of
