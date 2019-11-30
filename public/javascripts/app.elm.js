@@ -6169,6 +6169,215 @@ var _elm_lang$core$Tuple$first = function (_p6) {
 	return _p7._0;
 };
 
+var _elm_lang$dom$Native_Dom = function() {
+
+var fakeNode = {
+	addEventListener: function() {},
+	removeEventListener: function() {}
+};
+
+var onDocument = on(typeof document !== 'undefined' ? document : fakeNode);
+var onWindow = on(typeof window !== 'undefined' ? window : fakeNode);
+
+function on(node)
+{
+	return function(eventName, decoder, toTask)
+	{
+		return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback) {
+
+			function performTask(event)
+			{
+				var result = A2(_elm_lang$core$Json_Decode$decodeValue, decoder, event);
+				if (result.ctor === 'Ok')
+				{
+					_elm_lang$core$Native_Scheduler.rawSpawn(toTask(result._0));
+				}
+			}
+
+			node.addEventListener(eventName, performTask);
+
+			return function()
+			{
+				node.removeEventListener(eventName, performTask);
+			};
+		});
+	};
+}
+
+var rAF = typeof requestAnimationFrame !== 'undefined'
+	? requestAnimationFrame
+	: function(callback) { callback(); };
+
+function withNode(id, doStuff)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+	{
+		rAF(function()
+		{
+			var node = document.getElementById(id);
+			if (node === null)
+			{
+				callback(_elm_lang$core$Native_Scheduler.fail({ ctor: 'NotFound', _0: id }));
+				return;
+			}
+			callback(_elm_lang$core$Native_Scheduler.succeed(doStuff(node)));
+		});
+	});
+}
+
+
+// FOCUS
+
+function focus(id)
+{
+	return withNode(id, function(node) {
+		node.focus();
+		return _elm_lang$core$Native_Utils.Tuple0;
+	});
+}
+
+function blur(id)
+{
+	return withNode(id, function(node) {
+		node.blur();
+		return _elm_lang$core$Native_Utils.Tuple0;
+	});
+}
+
+
+// SCROLLING
+
+function getScrollTop(id)
+{
+	return withNode(id, function(node) {
+		return node.scrollTop;
+	});
+}
+
+function setScrollTop(id, desiredScrollTop)
+{
+	return withNode(id, function(node) {
+		node.scrollTop = desiredScrollTop;
+		return _elm_lang$core$Native_Utils.Tuple0;
+	});
+}
+
+function toBottom(id)
+{
+	return withNode(id, function(node) {
+		node.scrollTop = node.scrollHeight;
+		return _elm_lang$core$Native_Utils.Tuple0;
+	});
+}
+
+function getScrollLeft(id)
+{
+	return withNode(id, function(node) {
+		return node.scrollLeft;
+	});
+}
+
+function setScrollLeft(id, desiredScrollLeft)
+{
+	return withNode(id, function(node) {
+		node.scrollLeft = desiredScrollLeft;
+		return _elm_lang$core$Native_Utils.Tuple0;
+	});
+}
+
+function toRight(id)
+{
+	return withNode(id, function(node) {
+		node.scrollLeft = node.scrollWidth;
+		return _elm_lang$core$Native_Utils.Tuple0;
+	});
+}
+
+
+// SIZE
+
+function width(options, id)
+{
+	return withNode(id, function(node) {
+		switch (options.ctor)
+		{
+			case 'Content':
+				return node.scrollWidth;
+			case 'VisibleContent':
+				return node.clientWidth;
+			case 'VisibleContentWithBorders':
+				return node.offsetWidth;
+			case 'VisibleContentWithBordersAndMargins':
+				var rect = node.getBoundingClientRect();
+				return rect.right - rect.left;
+		}
+	});
+}
+
+function height(options, id)
+{
+	return withNode(id, function(node) {
+		switch (options.ctor)
+		{
+			case 'Content':
+				return node.scrollHeight;
+			case 'VisibleContent':
+				return node.clientHeight;
+			case 'VisibleContentWithBorders':
+				return node.offsetHeight;
+			case 'VisibleContentWithBordersAndMargins':
+				var rect = node.getBoundingClientRect();
+				return rect.bottom - rect.top;
+		}
+	});
+}
+
+return {
+	onDocument: F3(onDocument),
+	onWindow: F3(onWindow),
+
+	focus: focus,
+	blur: blur,
+
+	getScrollTop: getScrollTop,
+	setScrollTop: F2(setScrollTop),
+	getScrollLeft: getScrollLeft,
+	setScrollLeft: F2(setScrollLeft),
+	toBottom: toBottom,
+	toRight: toRight,
+
+	height: F2(height),
+	width: F2(width)
+};
+
+}();
+
+var _elm_lang$dom$Dom$blur = _elm_lang$dom$Native_Dom.blur;
+var _elm_lang$dom$Dom$focus = _elm_lang$dom$Native_Dom.focus;
+var _elm_lang$dom$Dom$NotFound = function (a) {
+	return {ctor: 'NotFound', _0: a};
+};
+
+var _elm_lang$dom$Dom_Size$width = _elm_lang$dom$Native_Dom.width;
+var _elm_lang$dom$Dom_Size$height = _elm_lang$dom$Native_Dom.height;
+var _elm_lang$dom$Dom_Size$VisibleContentWithBordersAndMargins = {ctor: 'VisibleContentWithBordersAndMargins'};
+var _elm_lang$dom$Dom_Size$VisibleContentWithBorders = {ctor: 'VisibleContentWithBorders'};
+var _elm_lang$dom$Dom_Size$VisibleContent = {ctor: 'VisibleContent'};
+var _elm_lang$dom$Dom_Size$Content = {ctor: 'Content'};
+
+var _elm_lang$dom$Dom_Scroll$toX = _elm_lang$dom$Native_Dom.setScrollLeft;
+var _elm_lang$dom$Dom_Scroll$x = _elm_lang$dom$Native_Dom.getScrollLeft;
+var _elm_lang$dom$Dom_Scroll$toRight = _elm_lang$dom$Native_Dom.toRight;
+var _elm_lang$dom$Dom_Scroll$toLeft = function (id) {
+	return A2(_elm_lang$dom$Dom_Scroll$toX, id, 0);
+};
+var _elm_lang$dom$Dom_Scroll$toY = _elm_lang$dom$Native_Dom.setScrollTop;
+var _elm_lang$dom$Dom_Scroll$y = _elm_lang$dom$Native_Dom.getScrollTop;
+var _elm_lang$dom$Dom_Scroll$toBottom = _elm_lang$dom$Native_Dom.toBottom;
+var _elm_lang$dom$Dom_Scroll$toTop = function (id) {
+	return A2(_elm_lang$dom$Dom_Scroll$toY, id, 0);
+};
+
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrap;
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrapWithFlags;
 
@@ -9452,6 +9661,12 @@ var _user$project$GoogleMap_Events$googleMapReady = function (tagger) {
 			_elm_lang$core$Json_Decode$value));
 };
 
+var _user$project$Main$defaultFilteredAssetType = 'CAMERA';
+var _user$project$Main$clearGoogleMapMarkersCmd = _elm_lang$core$Native_Platform.outgoingPort(
+	'clearGoogleMapMarkersCmd',
+	function (v) {
+		return null;
+	});
 var _user$project$Main$googleMapMarkersCmd = _elm_lang$core$Native_Platform.outgoingPort(
 	'googleMapMarkersCmd',
 	function (v) {
@@ -9460,6 +9675,10 @@ var _user$project$Main$googleMapMarkersCmd = _elm_lang$core$Native_Platform.outg
 				return {
 					assetUid: v.assetUid,
 					parentAssetUid: (v.parentAssetUid.ctor === 'Nothing') ? null : v.parentAssetUid._0,
+					eventTypes: _elm_lang$core$Native_List.toArray(v.eventTypes).map(
+						function (v) {
+							return v;
+						}),
 					assetType: v.assetType,
 					latitude: v.latitude,
 					longitude: v.longitude
@@ -9495,18 +9714,48 @@ var _user$project$Main$boundsChangedSub = _elm_lang$core$Native_Platform.incomin
 				A2(_elm_lang$core$Json_Decode$field, 'south', _elm_lang$core$Json_Decode$float));
 		},
 		A2(_elm_lang$core$Json_Decode$field, 'north', _elm_lang$core$Json_Decode$float)));
+var _user$project$Main$getAssetEventsSub = _elm_lang$core$Native_Platform.incomingPort(
+	'getAssetEventsSub',
+	A2(
+		_elm_lang$core$Json_Decode$andThen,
+		function (assetUid) {
+			return A2(
+				_elm_lang$core$Json_Decode$andThen,
+				function (eventType) {
+					return A2(
+						_elm_lang$core$Json_Decode$andThen,
+						function (startTime) {
+							return A2(
+								_elm_lang$core$Json_Decode$andThen,
+								function (endTime) {
+									return _elm_lang$core$Json_Decode$succeed(
+										{assetUid: assetUid, eventType: eventType, startTime: startTime, endTime: endTime});
+								},
+								A2(_elm_lang$core$Json_Decode$field, 'endTime', _elm_lang$core$Json_Decode$float));
+						},
+						A2(_elm_lang$core$Json_Decode$field, 'startTime', _elm_lang$core$Json_Decode$float));
+				},
+				A2(_elm_lang$core$Json_Decode$field, 'eventType', _elm_lang$core$Json_Decode$string));
+		},
+		A2(_elm_lang$core$Json_Decode$field, 'assetUid', _elm_lang$core$Json_Decode$string)));
 var _user$project$Main$Bounds = F4(
 	function (a, b, c, d) {
 		return {north: a, south: b, east: c, west: d};
 	});
-var _user$project$Main$CityIQAsset = F5(
+var _user$project$Main$CityIQAsset = F6(
+	function (a, b, c, d, e, f) {
+		return {assetUid: a, parentAssetUid: b, eventTypes: c, assetType: d, latitude: e, longitude: f};
+	});
+var _user$project$Main$AuthenticatedModel = F5(
 	function (a, b, c, d, e) {
-		return {assetUid: a, parentAssetUid: b, assetType: c, latitude: d, longitude: e};
+		return {accessToken: a, bounds: b, filteredAssetType: c, assets: d, message: e};
 	});
-var _user$project$Main$AuthenticatedModel = F2(
-	function (a, b) {
-		return {accessToken: a, assets: b};
-	});
+var _user$project$Main$Error = function (a) {
+	return {ctor: 'Error', _0: a};
+};
+var _user$project$Main$Info = function (a) {
+	return {ctor: 'Info', _0: a};
+};
 var _user$project$Main$Authenticated = function (a) {
 	return {ctor: 'Authenticated', _0: a};
 };
@@ -9518,19 +9767,30 @@ var _user$project$Main$AwaitingAuthentication = function (a) {
 };
 var _user$project$Main$AwaitingMapBounds = {ctor: 'AwaitingMapBounds'};
 var _user$project$Main$init = {ctor: '_Tuple2', _0: _user$project$Main$AwaitingMapBounds, _1: _elm_lang$core$Platform_Cmd$none};
-var _user$project$Main$NewContent = function (a) {
-	return {ctor: 'NewContent', _0: a};
+var _user$project$Main$NoOp = {ctor: 'NoOp'};
+var _user$project$Main$NewAssetEvent = function (a) {
+	return {ctor: 'NewAssetEvent', _0: a};
 };
-var _user$project$Main$getAssetsCmd = F2(
-	function (accessToken, bounds) {
+var _user$project$Main$GetAssetEvent = function (a) {
+	return {ctor: 'GetAssetEvent', _0: a};
+};
+var _user$project$Main$NewAssetMetadata = function (a) {
+	return {ctor: 'NewAssetMetadata', _0: a};
+};
+var _user$project$Main$getAssetMetadataCmd = F3(
+	function (accessToken, filteredAssetType, bounds) {
 		return A2(
 			_elm_lang$http$Http$send,
-			_user$project$Main$NewContent,
+			_user$project$Main$NewAssetMetadata,
 			function () {
-				var cityIqAssetDecoder = A5(
-					_elm_lang$core$Json_Decode$map4,
-					F4(
-						function (assetUid, parentAssetUid, assetType, coordinates) {
+				var cityIqAssetDecoder = A6(
+					_elm_lang$core$Json_Decode$map5,
+					F5(
+						function (assetUid, parentAssetUid, maybeEventTypes, assetType, coordinates) {
+							var eventTypes = A2(
+								_elm_lang$core$Maybe$withDefault,
+								{ctor: '[]'},
+								maybeEventTypes);
 							var _p0 = function () {
 								var _p1 = A2(_elm_lang$core$String$split, ':', coordinates);
 								if (((_p1.ctor === '::') && (_p1._1.ctor === '::')) && (_p1._1._1.ctor === '[]')) {
@@ -9551,13 +9811,18 @@ var _user$project$Main$getAssetsCmd = F2(
 							}();
 							var lat = _p0._0;
 							var lng = _p0._1;
-							return A5(_user$project$Main$CityIQAsset, assetUid, parentAssetUid, assetType, lat, lng);
+							return A6(_user$project$Main$CityIQAsset, assetUid, parentAssetUid, eventTypes, assetType, lat, lng);
 						}),
 					A2(_elm_lang$core$Json_Decode$field, 'assetUid', _elm_lang$core$Json_Decode$string),
 					A2(
 						_elm_lang$core$Json_Decode$field,
 						'parentAssetUid',
 						_elm_lang$core$Json_Decode$maybe(_elm_lang$core$Json_Decode$string)),
+					A2(
+						_elm_lang$core$Json_Decode$field,
+						'eventTypes',
+						_elm_lang$core$Json_Decode$maybe(
+							_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string))),
 					A2(_elm_lang$core$Json_Decode$field, 'assetType', _elm_lang$core$Json_Decode$string),
 					A2(_elm_lang$core$Json_Decode$field, 'coordinates', _elm_lang$core$Json_Decode$string));
 				var url = A2(
@@ -9584,7 +9849,7 @@ var _user$project$Main$getAssetsCmd = F2(
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												_elm_lang$core$Basics$toString(bounds.east),
-												'&page=0&size=100'))))))));
+												A2(_elm_lang$core$Basics_ops['++'], '&page=0&size=200&q=assetType:', filteredAssetType)))))))));
 				var request = _elm_lang$http$Http$request(
 					{
 						method: 'GET',
@@ -9613,6 +9878,9 @@ var _user$project$Main$getAssetsCmd = F2(
 				return request;
 			}());
 	});
+var _user$project$Main$NewAssetTypeFilter = function (a) {
+	return {ctor: 'NewAssetTypeFilter', _0: a};
+};
 var _user$project$Main$NewAccessToken = function (a) {
 	return {ctor: 'NewAccessToken', _0: a};
 };
@@ -9663,37 +9931,75 @@ var _user$project$Main$update = F2(
 						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
 			case 'AwaitingAuthentication':
+				var _p8 = _p2._0;
 				var _p5 = msg;
-				if (_p5.ctor === 'NewAccessToken') {
-					if (_p5._0.ctor === 'Ok') {
-						var _p6 = _p5._0._0;
+				switch (_p5.ctor) {
+					case 'NewAccessToken':
+						if (_p5._0.ctor === 'Ok') {
+							var _p6 = _p5._0._0;
+							return {
+								ctor: '_Tuple2',
+								_0: _user$project$Main$Authenticated(
+									A5(_user$project$Main$AuthenticatedModel, _p6, _p8, _user$project$Main$defaultFilteredAssetType, _elm_lang$core$Dict$empty, _elm_lang$core$Maybe$Nothing)),
+								_1: A3(_user$project$Main$getAssetMetadataCmd, _p6, _user$project$Main$defaultFilteredAssetType, _p8)
+							};
+						} else {
+							return {
+								ctor: '_Tuple2',
+								_0: _user$project$Main$FailedAuthentication(
+									_elm_lang$core$Basics$toString(_p5._0._0)),
+								_1: _elm_lang$core$Platform_Cmd$none
+							};
+						}
+					case 'NewMapBounds':
+						return {
+							ctor: '_Tuple2',
+							_0: _user$project$Main$AwaitingAuthentication(_p5._0),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					default:
+						var _p7 = A2(
+							_elm_lang$core$Debug$log,
+							'Unexpected message/state',
+							{ctor: '_Tuple2', _0: _p5, _1: model});
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'Authenticated':
+				var _p16 = _p2._0;
+				var _p9 = msg;
+				switch (_p9.ctor) {
+					case 'NewMapBounds':
+						var _p10 = _p9._0;
 						return {
 							ctor: '_Tuple2',
 							_0: _user$project$Main$Authenticated(
-								A2(_user$project$Main$AuthenticatedModel, _p6, _elm_lang$core$Dict$empty)),
-							_1: A2(_user$project$Main$getAssetsCmd, _p6, _p2._0)
+								_elm_lang$core$Native_Utils.update(
+									_p16,
+									{bounds: _p10})),
+							_1: A3(_user$project$Main$getAssetMetadataCmd, _p16.accessToken, _p16.filteredAssetType, _p10)
 						};
-					} else {
+					case 'NewAssetTypeFilter':
+						var _p11 = _p9._0;
 						return {
 							ctor: '_Tuple2',
-							_0: _user$project$Main$FailedAuthentication(
-								_elm_lang$core$Basics$toString(_p5._0._0)),
-							_1: _elm_lang$core$Platform_Cmd$none
+							_0: _user$project$Main$Authenticated(
+								_elm_lang$core$Native_Utils.update(
+									_p16,
+									{filteredAssetType: _p11, assets: _elm_lang$core$Dict$empty})),
+							_1: _elm_lang$core$Platform_Cmd$batch(
+								{
+									ctor: '::',
+									_0: _user$project$Main$clearGoogleMapMarkersCmd(
+										{ctor: '_Tuple0'}),
+									_1: {
+										ctor: '::',
+										_0: A3(_user$project$Main$getAssetMetadataCmd, _p16.accessToken, _p11, _p16.bounds),
+										_1: {ctor: '[]'}
+									}
+								})
 						};
-					}
-				} else {
-					var _p7 = A2(
-						_elm_lang$core$Debug$log,
-						'Unexpected message/state',
-						{ctor: '_Tuple2', _0: _p5, _1: model});
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				}
-			case 'Authenticated':
-				var _p11 = _p2._0;
-				var _p8 = msg;
-				switch (_p8.ctor) {
-					case 'NewContent':
-						if (_p8._0.ctor === 'Ok') {
+					case 'NewAssetMetadata':
+						if (_p9._0.ctor === 'Ok') {
 							var incomingAssets = A3(
 								_elm_lang$core$List$foldl,
 								F2(
@@ -9701,41 +10007,173 @@ var _user$project$Main$update = F2(
 										return _elm_lang$core$Native_Utils.eq(asset.assetType, 'NODE') ? accum : A3(_elm_lang$core$Dict$insert, asset.assetUid, asset, accum);
 									}),
 								_elm_lang$core$Dict$empty,
-								_p8._0._0);
-							var allAssets = A2(_elm_lang$core$Dict$union, _p11.assets, incomingAssets);
-							var newAssets = A2(_elm_lang$core$Dict$diff, incomingAssets, _p11.assets);
+								_p9._0._0);
+							var allAssets = A2(_elm_lang$core$Dict$union, _p16.assets, incomingAssets);
+							var newAssets = A2(_elm_lang$core$Dict$diff, incomingAssets, _p16.assets);
 							return {
 								ctor: '_Tuple2',
 								_0: _user$project$Main$Authenticated(
 									_elm_lang$core$Native_Utils.update(
-										_p11,
+										_p16,
 										{assets: allAssets})),
 								_1: _user$project$Main$googleMapMarkersCmd(
 									_elm_lang$core$Dict$values(newAssets))
 							};
 						} else {
-							var _p9 = A2(_elm_lang$core$Debug$log, 'Error', _p8._0._0);
-							return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+							return {
+								ctor: '_Tuple2',
+								_0: _user$project$Main$Authenticated(
+									_elm_lang$core$Native_Utils.update(
+										_p16,
+										{
+											message: _elm_lang$core$Maybe$Just(
+												_user$project$Main$Error(
+													_elm_lang$core$Basics$toString(_p9._0._0)))
+										})),
+								_1: _elm_lang$core$Platform_Cmd$none
+							};
 						}
-					case 'NewMapBounds':
+					case 'GetAssetEvent':
+						var _p13 = _p9._0.eventType;
 						return {
 							ctor: '_Tuple2',
 							_0: model,
-							_1: A2(_user$project$Main$getAssetsCmd, _p11.accessToken, _p8._0)
+							_1: A2(
+								_elm_lang$http$Http$send,
+								_user$project$Main$NewAssetEvent,
+								function () {
+									var predixZoneId = function () {
+										var _p12 = _p13;
+										switch (_p12) {
+											case 'PKIN':
+												return 'SD-IE-PARKING';
+											case 'PKOUT':
+												return 'SD-IE-PARKING';
+											case 'TFEVT':
+												return 'SD-IE-TRAFFIC';
+											case 'BICYCLE':
+												return 'SD-IE-BICYCLE';
+											case 'PEDEVT':
+												return 'SD-IE-PEDESTRIAN';
+											case 'PRESSURE':
+												return 'SD-IE-ENVIRONMENTAL';
+											case 'TEMPERATURE':
+												return 'SD-IE-ENVIRONMENTAL';
+											case 'ORIENTATION':
+												return 'SD-IE-ENVIRONMENTAL';
+											case 'HUMIDITY':
+												return 'SD-IE-ENVIRONMENTAL';
+											case 'METROLOGY':
+												return 'SD-IE-METROLOGY';
+											case 'ENERGY_ALERT':
+												return 'SD-IE-METROLOGY';
+											case 'ENERGY_TIMESERIES':
+												return 'SD-IE-METROLOGY';
+											default:
+												return 'UNKNOWN';
+										}
+									}();
+									var url = A2(
+										_elm_lang$core$Basics_ops['++'],
+										'/proxy/https://sandiego.cityiq.io/api/v2/event/assets/',
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											_p9._0.assetUid,
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												'/events?eventType=',
+												A2(
+													_elm_lang$core$Basics_ops['++'],
+													_p13,
+													A2(
+														_elm_lang$core$Basics_ops['++'],
+														'&startTime=',
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															_elm_lang$core$Basics$toString(_p9._0.startTime),
+															A2(
+																_elm_lang$core$Basics_ops['++'],
+																'&endTime=',
+																A2(
+																	_elm_lang$core$Basics_ops['++'],
+																	_elm_lang$core$Basics$toString(_p9._0.endTime),
+																	'&pageSize=100'))))))));
+									var request = _elm_lang$http$Http$request(
+										{
+											method: 'GET',
+											headers: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$http$Http$header,
+													'Authorization',
+													A2(_elm_lang$core$Basics_ops['++'], 'Bearer ', _p16.accessToken)),
+												_1: {
+													ctor: '::',
+													_0: A2(_elm_lang$http$Http$header, 'Predix-Zone-Id', predixZoneId),
+													_1: {ctor: '[]'}
+												}
+											},
+											url: url,
+											body: _elm_lang$http$Http$emptyBody,
+											expect: _elm_lang$http$Http$expectJson(_elm_lang$core$Json_Decode$value),
+											timeout: _elm_lang$core$Maybe$Nothing,
+											withCredentials: false
+										});
+									return request;
+								}())
 						};
-					default:
-						var _p10 = A2(
+					case 'NewAssetEvent':
+						if (_p9._0.ctor === 'Ok') {
+							return {
+								ctor: '_Tuple2',
+								_0: _user$project$Main$Authenticated(
+									_elm_lang$core$Native_Utils.update(
+										_p16,
+										{
+											message: _elm_lang$core$Maybe$Just(
+												_user$project$Main$Info(
+													A2(_elm_lang$core$Json_Encode$encode, 2, _p9._0._0)))
+										})),
+								_1: A2(
+									_elm_lang$core$Task$attempt,
+									_elm_lang$core$Basics$always(_user$project$Main$NoOp),
+									_elm_lang$dom$Dom_Scroll$toBottom('console'))
+							};
+						} else {
+							return {
+								ctor: '_Tuple2',
+								_0: _user$project$Main$Authenticated(
+									_elm_lang$core$Native_Utils.update(
+										_p16,
+										{
+											message: _elm_lang$core$Maybe$Just(
+												_user$project$Main$Error(
+													_elm_lang$core$Basics$toString(_p9._0._0)))
+										})),
+								_1: _elm_lang$core$Platform_Cmd$none
+							};
+						}
+					case 'NoOp':
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+					case 'MapReady':
+						var _p14 = A2(
 							_elm_lang$core$Debug$log,
 							'Unexpected message/state',
-							{ctor: '_Tuple2', _0: _p8, _1: model});
+							{ctor: '_Tuple2', _0: _p9, _1: model});
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+					default:
+						var _p15 = A2(
+							_elm_lang$core$Debug$log,
+							'Unexpected message/state',
+							{ctor: '_Tuple2', _0: _p9, _1: model});
 						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
 			default:
-				var _p12 = msg;
-				var _p13 = A2(
+				var _p17 = msg;
+				var _p18 = A2(
 					_elm_lang$core$Debug$log,
 					'Unexpected message/state',
-					{ctor: '_Tuple2', _0: _p12, _1: model});
+					{ctor: '_Tuple2', _0: _p17, _1: model});
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 		}
 	});
@@ -9743,71 +10181,285 @@ var _user$project$Main$NewMapBounds = function (a) {
 	return {ctor: 'NewMapBounds', _0: a};
 };
 var _user$project$Main$subscriptions = function (model) {
-	return _user$project$Main$boundsChangedSub(_user$project$Main$NewMapBounds);
+	return _elm_lang$core$Platform_Sub$batch(
+		{
+			ctor: '::',
+			_0: _user$project$Main$boundsChangedSub(_user$project$Main$NewMapBounds),
+			_1: {
+				ctor: '::',
+				_0: _user$project$Main$getAssetEventsSub(_user$project$Main$GetAssetEvent),
+				_1: {ctor: '[]'}
+			}
+		});
 };
 var _user$project$Main$MapReady = function (a) {
 	return {ctor: 'MapReady', _0: a};
 };
 var _user$project$Main$view = function (model) {
-	var googleMapView = A2(
-		_user$project$GoogleMap$googleMap,
+	return A2(
+		_elm_lang$html$Html$div,
 		{
 			ctor: '::',
-			_0: _user$project$GoogleMap_Attributes$latitude(32.71143062),
-			_1: {
-				ctor: '::',
-				_0: _user$project$GoogleMap_Attributes$longitude(-117.1600173),
-				_1: {
-					ctor: '::',
-					_0: _user$project$GoogleMap_Attributes$zoom(15),
-					_1: {
-						ctor: '::',
-						_0: _user$project$GoogleMap_Attributes$apiKey('AIzaSyD6jMwmDZ4Bvgee_-mMN4PUqBaK-qitqAg'),
-						_1: {
-							ctor: '::',
-							_0: _user$project$GoogleMap_Events$googleMapReady(_user$project$Main$MapReady),
-							_1: {ctor: '[]'}
-						}
-					}
-				}
-			}
+			_0: _elm_lang$html$Html_Attributes$id('root'),
+			_1: {ctor: '[]'}
 		},
 		{
 			ctor: '::',
-			_0: A3(
-				_elm_lang$html$Html$node,
-				'link',
+			_0: A2(
+				_user$project$GoogleMap$googleMap,
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$rel('import'),
+					_0: _user$project$GoogleMap_Attributes$latitude(32.71143062),
 					_1: {
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$href('/assets/javascripts/google-map/google-map.html'),
-						_1: {ctor: '[]'}
+						_0: _user$project$GoogleMap_Attributes$longitude(-117.1600173),
+						_1: {
+							ctor: '::',
+							_0: _user$project$GoogleMap_Attributes$zoom(15),
+							_1: {
+								ctor: '::',
+								_0: _user$project$GoogleMap_Attributes$apiKey('AIzaSyD6jMwmDZ4Bvgee_-mMN4PUqBaK-qitqAg'),
+								_1: {
+									ctor: '::',
+									_0: _user$project$GoogleMap_Events$googleMapReady(_user$project$Main$MapReady),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
 					}
 				},
-				{ctor: '[]'}),
-			_1: {ctor: '[]'}
-		});
-	var _p14 = model;
-	switch (_p14.ctor) {
-		case 'Authenticated':
-			return googleMapView;
-		case 'AwaitingAuthentication':
-			return googleMapView;
-		case 'AwaitingMapBounds':
-			return googleMapView;
-		default:
-			return A2(
-				_elm_lang$html$Html$div,
-				{ctor: '[]'},
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html$text(
-						A2(_elm_lang$core$Basics_ops['++'], 'Failed to obtain access token: ', _p14._0)),
+					_0: A3(
+						_elm_lang$html$Html$node,
+						'link',
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$rel('import'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$href('/assets/javascripts/google-map/google-map.html'),
+								_1: {ctor: '[]'}
+							}
+						},
+						{ctor: '[]'}),
 					_1: {ctor: '[]'}
-				});
-	}
+				}),
+			_1: {
+				ctor: '::',
+				_0: function () {
+					var assetType = function () {
+						var _p19 = model;
+						if (_p19.ctor === 'Authenticated') {
+							return _p19._0.filteredAssetType;
+						} else {
+							return _user$project$Main$defaultFilteredAssetType;
+						}
+					}();
+					var enabled = function () {
+						var _p20 = model;
+						if (_p20.ctor === 'Authenticated') {
+							return true;
+						} else {
+							return false;
+						}
+					}();
+					return A2(
+						_elm_lang$html$Html$select,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$id('asset-type-filter'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onInput(_user$project$Main$NewAssetTypeFilter),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$disabled(!enabled),
+									_1: {ctor: '[]'}
+								}
+							}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$option,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$value('CAMERA'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$selected(
+											_elm_lang$core$Native_Utils.eq(assetType, 'CAMERA')),
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('📷 CAMERA'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$option,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$value('MIC'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$selected(
+												_elm_lang$core$Native_Utils.eq(assetType, 'MIC')),
+											_1: {ctor: '[]'}
+										}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('🎤 (MIC)'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$option,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$value('ENV_SENSOR'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$selected(
+													_elm_lang$core$Native_Utils.eq(assetType, 'ENV_SENSOR')),
+												_1: {ctor: '[]'}
+											}
+										},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('🌡 (ENV_SENSOR)'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$option,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$value('EM_SENSOR'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$selected(
+														_elm_lang$core$Native_Utils.eq(assetType, 'EM_SENSOR')),
+													_1: {ctor: '[]'}
+												}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('⚡️ (EM_SENSOR)'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						});
+				}(),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$id('console'),
+							_1: {ctor: '[]'}
+						},
+						function () {
+							var _p21 = model;
+							switch (_p21.ctor) {
+								case 'Authenticated':
+									var _p22 = _p21._0.message;
+									if (_p22.ctor === 'Just') {
+										if (_p22._0.ctor === 'Info') {
+											return {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$pre,
+													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text(_p22._0._0),
+														_1: {ctor: '[]'}
+													}),
+												_1: {ctor: '[]'}
+											};
+										} else {
+											return {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$pre,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$class('stderr'),
+														_1: {ctor: '[]'}
+													},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text(_p22._0._0),
+														_1: {ctor: '[]'}
+													}),
+												_1: {ctor: '[]'}
+											};
+										}
+									} else {
+										return {ctor: '[]'};
+									}
+								case 'AwaitingMapBounds':
+									return {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$pre,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('Awaiting map bounds...'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									};
+								case 'AwaitingAuthentication':
+									return {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$pre,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('Awaiting authentication...'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									};
+								default:
+									return {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$pre,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$class('stderr '),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text(
+													A2(_elm_lang$core$Basics_ops['++'], 'Failed to obtain access token: ', _p21._0)),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									};
+							}
+						}()),
+					_1: {ctor: '[]'}
+				}
+			}
+		});
 };
 var _user$project$Main$main = _elm_lang$html$Html$program(
 	{init: _user$project$Main$init, update: _user$project$Main$update, subscriptions: _user$project$Main$subscriptions, view: _user$project$Main$view})();

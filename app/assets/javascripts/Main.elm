@@ -2,13 +2,23 @@ port module Main exposing (..)
 
 import BasicAuth
 import Dict exposing (Dict)
+import Dom.Scroll
 import GoogleMap exposing (googleMap, googleMapMarker)
 import GoogleMap.Attributes exposing (apiKey, latitude, longitude, zoom)
 import GoogleMap.Events exposing (MapEvent, googleMapReady)
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (href, id, rel)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onInput)
 import Http
-import Json.Decode as Decode exposing (Value)
+import Json.Decode as Decode
+import Json.Encode as Encode exposing (Value)
+import Task
+import Time exposing (Time)
+
+
+defaultFilteredAssetType : String
+defaultFilteredAssetType =
+    "CAMERA"
 
 
 type alias Bounds =
@@ -22,15 +32,24 @@ type alias Bounds =
 type alias CityIQAsset =
     { assetUid : String
     , parentAssetUid : Maybe String
+    , eventTypes : List String
     , assetType : String
     , latitude : Float
     , longitude : Float
     }
 
 
+type ConsoleMessage
+    = Info String
+    | Error String
+
+
 type alias AuthenticatedModel =
     { accessToken : String
+    , bounds : Bounds
+    , filteredAssetType : String
     , assets : Dict String CityIQAsset
+    , message : Maybe ConsoleMessage
     }
 
 
@@ -45,7 +64,11 @@ type Msg
     = MapReady MapEvent
     | NewMapBounds Bounds
     | NewAccessToken (Result Http.Error String)
-    | NewContent (Result Http.Error (List CityIQAsset))
+    | NewAssetTypeFilter String
+    | NewAssetMetadata (Result Http.Error (List CityIQAsset))
+    | GetAssetEvent { assetUid : String, eventType : String, startTime : Time, endTime : Time }
+    | NewAssetEvent (Result Http.Error Value)
+    | NoOp
 
 
 init : ( Model, Cmd Msg )
@@ -55,9 +78,9 @@ init =
     )
 
 
-getAssetsCmd : String -> Bounds -> Cmd Msg
-getAssetsCmd accessToken bounds =
-    Http.send NewContent
+getAssetMetadataCmd : String -> String -> Bounds -> Cmd Msg
+getAssetMetadataCmd accessToken filteredAssetType bounds =
+    Http.send NewAssetMetadata
         (let
             url : String
             url =
@@ -69,29 +92,36 @@ getAssetsCmd accessToken bounds =
                     ++ toString bounds.south
                     ++ ":"
                     ++ toString bounds.east
-                    ++ "&page=0&size=200"
+                    ++ "&page=0&size=200&q=assetType:"
+                    ++ filteredAssetType
 
             --&q=eventTypes:TFEVT"
             cityIqAssetDecoder : Decode.Decoder CityIQAsset
             cityIqAssetDecoder =
-                Decode.map4
+                Decode.map5
                     (\assetUid ->
                         \parentAssetUid ->
-                            \assetType ->
-                                \coordinates ->
-                                    let
-                                        ( lat, lng ) =
-                                            case String.split ":" coordinates of
-                                                lat :: lng :: [] ->
-                                                    ( Result.withDefault 0.0 (String.toFloat lat), Result.withDefault 0.0 (String.toFloat lng) )
+                            \maybeEventTypes ->
+                                \assetType ->
+                                    \coordinates ->
+                                        let
+                                            ( lat, lng ) =
+                                                case String.split ":" coordinates of
+                                                    lat :: lng :: [] ->
+                                                        ( Result.withDefault 0.0 (String.toFloat lat), Result.withDefault 0.0 (String.toFloat lng) )
 
-                                                _ ->
-                                                    ( 0.0, 0.0 )
-                                    in
-                                    CityIQAsset assetUid parentAssetUid assetType lat lng
+                                                    _ ->
+                                                        ( 0.0, 0.0 )
+
+                                            eventTypes : List String
+                                            eventTypes =
+                                                Maybe.withDefault [] maybeEventTypes
+                                        in
+                                        CityIQAsset assetUid parentAssetUid eventTypes assetType lat lng
                     )
                     (Decode.field "assetUid" Decode.string)
                     (Decode.field "parentAssetUid" (Decode.maybe Decode.string))
+                    (Decode.field "eventTypes" (Decode.maybe (Decode.list Decode.string)))
                     (Decode.field "assetType" Decode.string)
                     (Decode.field "coordinates" Decode.string)
 
@@ -114,7 +144,12 @@ getAssetsCmd accessToken bounds =
         )
 
 
+port clearGoogleMapMarkersCmd : () -> Cmd msg
+
+
 port googleMapMarkersCmd : List CityIQAsset -> Cmd msg
+
+
 port initBoundsChangedListenerCmd : Value -> Cmd msg
 
 
@@ -162,12 +197,17 @@ update msg model =
         AwaitingAuthentication bounds ->
             case msg of
                 NewAccessToken (Ok accessToken) ->
-                    ( Authenticated (AuthenticatedModel accessToken Dict.empty)
-                    , getAssetsCmd accessToken bounds
+                    ( Authenticated (AuthenticatedModel accessToken bounds defaultFilteredAssetType Dict.empty Nothing)
+                    , getAssetMetadataCmd accessToken defaultFilteredAssetType bounds
                     )
 
                 NewAccessToken (Err err) ->
                     ( FailedAuthentication (toString err)
+                    , Cmd.none
+                    )
+
+                NewMapBounds bounds ->
+                    ( AwaitingAuthentication bounds
                     , Cmd.none
                     )
 
@@ -180,7 +220,20 @@ update msg model =
 
         Authenticated authModel ->
             case msg of
-                NewContent (Ok assets) ->
+                NewMapBounds bounds ->
+                    ( Authenticated { authModel | bounds = bounds }
+                    , getAssetMetadataCmd authModel.accessToken authModel.filteredAssetType bounds
+                    )
+
+                NewAssetTypeFilter assetType ->
+                    ( Authenticated { authModel | filteredAssetType = assetType, assets = Dict.empty }
+                    , Cmd.batch
+                        [ clearGoogleMapMarkersCmd ()
+                        , getAssetMetadataCmd authModel.accessToken assetType authModel.bounds
+                        ]
+                    )
+
+                NewAssetMetadata (Ok assets) ->
                     let
                         incomingAssets : Dict String CityIQAsset
                         incomingAssets =
@@ -208,24 +261,112 @@ update msg model =
                     , googleMapMarkersCmd (Dict.values newAssets)
                     )
 
-                NewContent (Err err) ->
-                    let
-                        _ =
-                            Debug.log "Error" err
-                    in
-                    ( model
+                NewAssetMetadata (Err err) ->
+                    ( Authenticated { authModel | message = Just (Error (toString err)) }
                     , Cmd.none
                     )
 
-                NewMapBounds bounds ->
+                (GetAssetEvent { assetUid, eventType, startTime, endTime }) as req ->
                     ( model
-                    , getAssetsCmd authModel.accessToken bounds
+                    , Http.send NewAssetEvent
+                        (let
+                            url : String
+                            url =
+                                "/proxy/https://sandiego.cityiq.io/api/v2/event/assets/"
+                                    ++ assetUid
+                                    ++ "/events?eventType="
+                                    ++ eventType
+                                    ++ "&startTime="
+                                    ++ toString startTime
+                                    ++ "&endTime="
+                                    ++ toString endTime
+                                    ++ "&pageSize=100"
+
+                            predixZoneId : String
+                            predixZoneId =
+                                case eventType of
+                                    "PKIN" ->
+                                        "SD-IE-PARKING"
+
+                                    "PKOUT" ->
+                                        "SD-IE-PARKING"
+
+                                    "TFEVT" ->
+                                        "SD-IE-TRAFFIC"
+
+                                    "BICYCLE" ->
+                                        "SD-IE-BICYCLE"
+
+                                    "PEDEVT" ->
+                                        "SD-IE-PEDESTRIAN"
+
+                                    "PRESSURE" ->
+                                        "SD-IE-ENVIRONMENTAL"
+
+                                    "TEMPERATURE" ->
+                                        "SD-IE-ENVIRONMENTAL"
+
+                                    "ORIENTATION" ->
+                                        "SD-IE-ENVIRONMENTAL"
+
+                                    "HUMIDITY" ->
+                                        "SD-IE-ENVIRONMENTAL"
+
+                                    "METROLOGY" ->
+                                        "SD-IE-METROLOGY"
+
+                                    "ENERGY_ALERT" ->
+                                        "SD-IE-METROLOGY"
+
+                                    "ENERGY_TIMESERIES" ->
+                                        "SD-IE-METROLOGY"
+
+                                    _ ->
+                                        "UNKNOWN"
+
+                            request : Http.Request Value
+                            request =
+                                Http.request
+                                    { method = "GET"
+                                    , headers =
+                                        [ Http.header "Authorization" ("Bearer " ++ authModel.accessToken)
+                                        , Http.header "Predix-Zone-Id" predixZoneId
+                                        ]
+                                    , url = url
+                                    , body = Http.emptyBody
+                                    , expect = Http.expectJson Decode.value
+                                    , timeout = Nothing
+                                    , withCredentials = False
+                                    }
+                         in
+                         request
+                        )
                     )
 
-                unexpected ->
+                NewAssetEvent (Ok jsonValue) ->
+                    ( Authenticated { authModel | message = Just (Info (Encode.encode 2 jsonValue)) }
+                    , Task.attempt (always NoOp) (Dom.Scroll.toBottom "console")
+                    )
+
+                NewAssetEvent (Err err) ->
+                    ( Authenticated { authModel | message = Just (Error (toString err)) }
+                    , Cmd.none
+                    )
+
+                NoOp ->
+                    ( model, Cmd.none )
+
+                (MapReady _) as msg ->
                     let
                         _ =
-                            Debug.log "Unexpected message/state" ( unexpected, model )
+                            Debug.log "Unexpected message/state" ( msg, model )
+                    in
+                    ( model, Cmd.none )
+
+                (NewAccessToken _) as msg ->
+                    let
+                        _ =
+                            Debug.log "Unexpected message/state" ( msg, model )
                     in
                     ( model, Cmd.none )
 
@@ -242,34 +383,89 @@ update msg model =
 port boundsChangedSub : (Bounds -> msg) -> Sub msg
 
 
+port getAssetEventsSub : ({ assetUid : String, eventType : String, startTime : Time, endTime : Time } -> msg) -> Sub msg
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    boundsChangedSub NewMapBounds
+    Sub.batch
+        [ boundsChangedSub NewMapBounds
+        , getAssetEventsSub GetAssetEvent
+        ]
 
 
 view : Model -> Html Msg
 view model =
-    let
-        googleMapView : Html Msg
-        googleMapView =
-            googleMap
-                [ latitude 32.71143062
-                , longitude -117.1600173
-                , zoom 15
-                , apiKey "AIzaSyD6jMwmDZ4Bvgee_-mMN4PUqBaK-qitqAg"
-                , googleMapReady MapReady
-                ]
-                [ Html.node "link" [ rel "import", href "/assets/javascripts/google-map/google-map.html" ] [] ]
-    in
-    case model of
-        Authenticated { assets } -> googleMapView
+    div [ id "root" ]
+        [ googleMap
+            [ latitude 32.71143062
+            , longitude -117.1600173
+            , zoom 15
+            , apiKey "AIzaSyD6jMwmDZ4Bvgee_-mMN4PUqBaK-qitqAg"
+            , googleMapReady MapReady
+            ]
+            [ Html.node "link" [ rel "import", href "/assets/javascripts/google-map/google-map.html" ] []
+            ]
+        , let
+            enabled : Bool
+            enabled =
+                case model of
+                    Authenticated _ ->
+                        True
 
-        AwaitingAuthentication _ -> googleMapView
+                    _ ->
+                        False
 
-        AwaitingMapBounds -> googleMapView
+            assetType : String
+            assetType =
+                case model of
+                    Authenticated { filteredAssetType } ->
+                        filteredAssetType
 
-        FailedAuthentication errorMsg ->
-            div [] [ text ("Failed to obtain access token: " ++ errorMsg) ]
+                    _ ->
+                        defaultFilteredAssetType
+          in
+          select
+            [ id "asset-type-filter"
+            , onInput NewAssetTypeFilter
+            , disabled (not enabled)
+            ]
+            [ option
+                [ value "CAMERA", selected (assetType == "CAMERA") ]
+                [ text "📷 CAMERA" ]
+            , option
+                [ value "MIC", selected (assetType == "MIC") ]
+                [ text "🎤 (MIC)" ]
+            , option
+                [ value "ENV_SENSOR", selected (assetType == "ENV_SENSOR") ]
+                [ text "🌡 (ENV_SENSOR)" ]
+            , option
+                [ value "EM_SENSOR", selected (assetType == "EM_SENSOR") ]
+                [ text "⚡️ (EM_SENSOR)" ]
+            ]
+        , div [ id "console" ]
+            (case model of
+                Authenticated { message } ->
+                    case message of
+                        Just (Info msg) ->
+                            [ pre [] [ text msg ] ]
+
+                        Just (Error msg) ->
+                            [ pre [ class "stderr" ] [ text msg ] ]
+
+                        Nothing ->
+                            []
+
+                AwaitingMapBounds ->
+                    [ pre [] [ text "Awaiting map bounds..." ] ]
+
+                AwaitingAuthentication _ ->
+                    [ pre [] [ text "Awaiting authentication..." ] ]
+
+                FailedAuthentication errorMsg ->
+                    [ pre [ class "stderr " ] [ text ("Failed to obtain access token: " ++ errorMsg) ] ]
+            )
+        ]
 
 
 main : Program Never Model Msg

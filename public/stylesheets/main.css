@@ -1,7 +1,36 @@
-html, body {
+html, body, #root {
   height: 100%;
   margin: 0;
 }
+
 google-map {
-  height: 100%;
+  bottom: 160px;
+}
+
+#asset-type-filter {
+  position: absolute;
+  left: 10px;
+  bottom: 190px;
+}
+
+#console {
+    position: absolute;
+    height: 160px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: solid black 1px;
+    overflow: scroll;
+}
+
+#console pre {
+    margin: 0;
+    font-size: 1em;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+#console pre.stderr {
+    color: #d00;
 }

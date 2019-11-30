@@ -13,9 +13,13 @@
     <script type="text/javascript" src="@routes.Assets.versioned("javascripts/app.elm.js")"></script>
     <script type="text/javascript">
       let app = Elm.Main.fullscreen();
+      let map = null;
+      let mapMarkers = [];
       let openInfoWindow = null;
+      const date = new Date();
 
       app.ports.initBoundsChangedListenerCmd.subscribe(function (evt) {
+        map = evt.target;
         evt.target.map.addListener(
           'bounds_changed',
           function() {
@@ -26,10 +30,23 @@
         );
       });
       app.ports.googleMapMarkersCmd.subscribe(function (assets) {
-        let map = document.querySelector('google-map').map;
         for (let asset of assets) {
+          let eventButtonsHtml = "";
+          for (let eventType of asset.eventTypes) {
+            let param =
+              `{
+                "assetUid": "${asset.assetUid}",
+                "eventType" : "${eventType}",
+                "startTime" : date.getTime() - 60*60*1000,
+                "endTime" : date.getTime()
+              }`;
+            eventButtonsHtml +=
+              `<button onClick='app.ports.getAssetEventsSub.send(${param});'>
+                ${eventType}
+              </button>`;
+          }
           let infoWindow = new google.maps.InfoWindow({
-            content: "uid: " + asset.assetUid
+            content: `uid: ${asset.assetUid}<br />${eventButtonsHtml}`
           });
           let label;
           switch (asset.assetType) {
@@ -58,16 +75,27 @@
           }
           let marker = new google.maps.Marker({
             position: {"lat": asset.latitude, "lng": asset.longitude},
-            map: map,
+            map: map.map,
             label: label,
             draggable: true
           });
           marker.addListener('click', function() {
             if (openInfoWindow) openInfoWindow.close();
-            infoWindow.open(map, marker);
-            openInfoWindow = infoWindow;
+            if (openInfoWindow != infoWindow) {
+              infoWindow.open(map.map, marker);
+              openInfoWindow = infoWindow;
+            } else {
+              openInfoWindow = null;
+            }
           });
+          mapMarkers.push(marker);
         }
+      });
+      app.ports.clearGoogleMapMarkersCmd.subscribe(function () {
+        for (let marker of mapMarkers) {
+          marker.setMap(null);
+        }
+        mapMarkers = [];
       });
     </script>
   </body>
