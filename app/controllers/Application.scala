@@ -29,18 +29,15 @@ class Application @Inject()(ws: WSClient, cc: ControllerComponents)(implicit ec:
       withHttpHeaders(proxiedHeaders: _*).
       stream().
       map { response: WSResponse =>
-        if (response.status == 200) {
-          val contentType = response.headers.get("Content-Type").flatMap(_.headOption)
-            .getOrElse("application/octet-stream")
+        val contentType = response.headers.get("Content-Type").flatMap(_.headOption)
+          .getOrElse("application/octet-stream")
+        val result = Status(response.status)
 
-          response.headers.get("Content-Length") match {
-            case Some(List(length)) =>
-              Ok(response.body).as(contentType).withHeaders("Content-Length" -> length)
-            case _ =>
-              Ok.chunked(response.bodyAsSource).as(contentType)
-          }
-        } else {
-          BadGateway
+        response.headers.get("Content-Length") match {
+          case Some(List(length)) =>
+            result(response.body).as(contentType).withHeaders("Content-Length" -> length)
+          case _ =>
+            result.chunked(response.bodyAsSource).as(contentType)
         }
       }
   }
