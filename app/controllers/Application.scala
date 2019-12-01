@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class Application @Inject()(ws: WSClient, cc: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
-  def index = Action {
+  def index: Action[AnyContent] = Action {
     Ok(views.html.index())
   }
 
