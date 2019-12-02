@@ -22,11 +22,16 @@
 
       app.ports.initBoundsChangedListenerCmd.subscribe(function (evt) {
         map = evt.target;
-        evt.target.map.addListener(
+        map.map.addListener(
           'bounds_changed',
           function() {
             app.ports.boundsChangedSub.send(
-              JSON.parse(JSON.stringify(evt.target.map.getBounds()))
+              {
+                "latitude": map.map.getCenter().lat(),
+                "longitude": map.map.getCenter().lng(),
+                "zoom": map.map.getZoom(),
+                "bounds": JSON.parse(JSON.stringify(map.map.getBounds()))
+              }
             );
           }
         );

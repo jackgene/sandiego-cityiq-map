@@ -12,8 +12,28 @@ import Html.Events exposing (onInput)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode exposing (Value)
+import Navigation exposing (Location)
 import Task
 import Time exposing (Time)
+
+
+
+-- Downtown San Diego
+
+
+defaultLatitude : Float
+defaultLatitude =
+    32.71143062
+
+
+defaultLongitude : Float
+defaultLongitude =
+    -117.1600173
+
+
+defaultZoom : Int
+defaultZoom =
+    15
 
 
 defaultFilteredAssetType : String
@@ -26,6 +46,14 @@ type alias Bounds =
     , south : Float
     , east : Float
     , west : Float
+    }
+
+
+type alias MapState =
+    { latitude : Float
+    , longitude : Float
+    , zoom : Int
+    , bounds : Bounds
     }
 
 
@@ -46,6 +74,7 @@ type ConsoleMessage
 
 type alias AuthenticatedModel =
     { accessToken : String
+    , initMapState : MapState
     , bounds : Bounds
     , filteredAssetType : String
     , assets : Dict String CityIQAsset
@@ -54,15 +83,15 @@ type alias AuthenticatedModel =
 
 
 type Model
-    = AwaitingMapBounds
-    | AwaitingAuthentication Bounds
+    = AwaitingMapBounds Float Float Int
+    | AwaitingAuthentication MapState
     | FailedAuthentication String
     | Authenticated AuthenticatedModel
 
 
 type Msg
     = MapReady MapEvent
-    | NewMapBounds Bounds
+    | NewMapBounds MapState
     | NewAccessToken (Result Http.Error String)
     | NewAssetTypeFilter String
     | NewAssetMetadata (Result Http.Error (List CityIQAsset))
@@ -71,11 +100,32 @@ type Msg
     | NoOp
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( AwaitingMapBounds
-    , Cmd.none
-    )
+init : Location -> ( Model, Cmd Msg )
+init location =
+    let
+        latLngZoom : Maybe ( Float, Float, Int )
+        latLngZoom =
+            case String.split "|" (String.dropLeft 1 location.hash) of
+                latStr :: lngStr :: zoomStr :: [] ->
+                    Maybe.map3
+                        (\lat -> \lng -> \zoom -> ( lat, lng, zoom ))
+                        (Result.toMaybe (String.toFloat latStr))
+                        (Result.toMaybe (String.toFloat lngStr))
+                        (Result.toMaybe (String.toInt zoomStr))
+
+                _ ->
+                    Nothing
+    in
+    case latLngZoom of
+        Just ( lat, lng, zoom ) ->
+            ( AwaitingMapBounds lat lng zoom
+            , Cmd.none
+            )
+
+        Nothing ->
+            ( AwaitingMapBounds defaultLatitude defaultLongitude defaultZoom
+            , Navigation.modifyUrl "/"
+            )
 
 
 getAssetMetadataCmd : String -> String -> Bounds -> Cmd Msg
@@ -156,15 +206,15 @@ port initBoundsChangedListenerCmd : Value -> Cmd msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case model of
-        AwaitingMapBounds ->
+        AwaitingMapBounds _ _ _ ->
             case msg of
                 MapReady event ->
                     ( model
                     , initBoundsChangedListenerCmd event.rawEvent
                     )
 
-                NewMapBounds bounds ->
-                    ( AwaitingAuthentication bounds
+                NewMapBounds mapState ->
+                    ( AwaitingAuthentication mapState
                     , Http.send NewAccessToken
                         (let
                             accessTokenDecoder : Decode.Decoder String
@@ -194,10 +244,10 @@ update msg model =
                     in
                     ( model, Cmd.none )
 
-        AwaitingAuthentication bounds ->
+        AwaitingAuthentication ({ bounds } as mapState) ->
             case msg of
                 NewAccessToken (Ok accessToken) ->
-                    ( Authenticated (AuthenticatedModel accessToken bounds defaultFilteredAssetType Dict.empty Nothing)
+                    ( Authenticated (AuthenticatedModel accessToken mapState bounds defaultFilteredAssetType Dict.empty Nothing)
                     , getAssetMetadataCmd accessToken defaultFilteredAssetType bounds
                     )
 
@@ -206,8 +256,8 @@ update msg model =
                     , Cmd.none
                     )
 
-                NewMapBounds bounds ->
-                    ( AwaitingAuthentication bounds
+                NewMapBounds mapState ->
+                    ( AwaitingAuthentication mapState
                     , Cmd.none
                     )
 
@@ -220,9 +270,12 @@ update msg model =
 
         Authenticated authModel ->
             case msg of
-                NewMapBounds bounds ->
+                NewMapBounds { latitude, longitude, zoom, bounds } ->
                     ( Authenticated { authModel | bounds = bounds }
-                    , getAssetMetadataCmd authModel.accessToken authModel.filteredAssetType bounds
+                    , Cmd.batch
+                        [ getAssetMetadataCmd authModel.accessToken authModel.filteredAssetType bounds
+                        , Navigation.modifyUrl ("#" ++ toString latitude ++ "|" ++ toString longitude ++ "|" ++ toString zoom)
+                        ]
                     )
 
                 NewAssetTypeFilter assetType ->
@@ -380,7 +433,7 @@ update msg model =
                     ( model, Cmd.none )
 
 
-port boundsChangedSub : (Bounds -> msg) -> Sub msg
+port boundsChangedSub : (MapState -> msg) -> Sub msg
 
 
 port getAssetEventsSub : ({ assetUid : String, eventType : String, startTime : Time, endTime : Time } -> msg) -> Sub msg
@@ -394,16 +447,43 @@ subscriptions model =
         ]
 
 
+extractLatLngZoom : Model -> Maybe ( Float, Float, Int )
+extractLatLngZoom model =
+    case model of
+        AwaitingMapBounds lat lng zm ->
+            Just ( lat, lng, zm )
+
+        AwaitingAuthentication { latitude, longitude, zoom } ->
+            Just ( latitude, longitude, zoom )
+
+        Authenticated { initMapState } ->
+            Just ( initMapState.latitude, initMapState.longitude, initMapState.zoom )
+
+        _ ->
+            Nothing
+
+
 view : Model -> Html Msg
 view model =
     div [ id "root" ]
         [ googleMap
-            [ latitude 32.71143062
-            , longitude -117.1600173
-            , zoom 15
-            , apiKey "AIzaSyD6jMwmDZ4Bvgee_-mMN4PUqBaK-qitqAg"
-            , googleMapReady MapReady
-            ]
+            (case extractLatLngZoom model of
+                Just ( lat, lng, zm ) ->
+                    [ latitude lat
+                    , longitude lng
+                    , zoom zm
+                    , apiKey "AIzaSyD6jMwmDZ4Bvgee_-mMN4PUqBaK-qitqAg"
+                    , googleMapReady MapReady
+                    ]
+
+                Nothing ->
+                    [ latitude defaultLatitude
+                    , longitude defaultLongitude
+                    , zoom defaultZoom
+                    , apiKey "AIzaSyD6jMwmDZ4Bvgee_-mMN4PUqBaK-qitqAg"
+                    , googleMapReady MapReady
+                    ]
+            )
             [ Html.node "link" [ rel "import", href "/assets/javascripts/google-map/google-map.html" ] []
             ]
         , let
@@ -456,7 +536,7 @@ view model =
                         Nothing ->
                             []
 
-                AwaitingMapBounds ->
+                AwaitingMapBounds _ _ _ ->
                     [ pre [] [ text "Awaiting map bounds..." ] ]
 
                 AwaitingAuthentication _ ->
@@ -470,7 +550,8 @@ view model =
 
 main : Program Never Model Msg
 main =
-    Html.program
+    Navigation.program
+        (always NoOp)
         { init = init
         , update = update
         , subscriptions = subscriptions
