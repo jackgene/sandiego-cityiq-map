@@ -314,6 +314,16 @@ update msg model =
                     , googleMapMarkersCmd (Dict.values newAssets)
                     )
 
+                NewAssetMetadata (Err ((Http.BadStatus { status, body }) as err)) ->
+                    ( if status.code == 500 && String.contains "Assets not found " body then
+                        -- API returns 500 when there's no result
+                        model
+
+                      else
+                        Authenticated { authModel | message = Just (Error (toString err)) }
+                    , Cmd.none
+                    )
+
                 NewAssetMetadata (Err err) ->
                     ( Authenticated { authModel | message = Just (Error (toString err)) }
                     , Cmd.none

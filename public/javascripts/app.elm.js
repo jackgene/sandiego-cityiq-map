@@ -10542,18 +10542,33 @@ var _user$project$Main$update = F2(
 									_elm_lang$core$Dict$values(newAssets))
 							};
 						} else {
-							return {
-								ctor: '_Tuple2',
-								_0: _user$project$Main$Authenticated(
-									_elm_lang$core$Native_Utils.update(
-										_p20,
-										{
-											message: _elm_lang$core$Maybe$Just(
-												_user$project$Main$Error(
-													_elm_lang$core$Basics$toString(_p13._0._0)))
-										})),
-								_1: _elm_lang$core$Platform_Cmd$none
-							};
+							if (_p13._0._0.ctor === 'BadStatus') {
+								return {
+									ctor: '_Tuple2',
+									_0: (_elm_lang$core$Native_Utils.eq(_p13._0._0._0.status.code, 500) && A2(_elm_lang$core$String$contains, 'Assets not found ', _p13._0._0._0.body)) ? model : _user$project$Main$Authenticated(
+										_elm_lang$core$Native_Utils.update(
+											_p20,
+											{
+												message: _elm_lang$core$Maybe$Just(
+													_user$project$Main$Error(
+														_elm_lang$core$Basics$toString(_p13._0._0)))
+											})),
+									_1: _elm_lang$core$Platform_Cmd$none
+								};
+							} else {
+								return {
+									ctor: '_Tuple2',
+									_0: _user$project$Main$Authenticated(
+										_elm_lang$core$Native_Utils.update(
+											_p20,
+											{
+												message: _elm_lang$core$Maybe$Just(
+													_user$project$Main$Error(
+														_elm_lang$core$Basics$toString(_p13._0._0)))
+											})),
+									_1: _elm_lang$core$Platform_Cmd$none
+								};
+							}
 						}
 					case 'GetAssetEvent':
 						var _p17 = _p13._0.eventType;
