@@ -105,7 +105,7 @@ init location =
     let
         latLngZoom : Maybe ( Float, Float, Int )
         latLngZoom =
-            case String.split "|" (String.dropLeft 1 location.hash) of
+            case String.split "," (String.dropLeft 1 location.hash) of
                 latStr :: lngStr :: zoomStr :: [] ->
                     Maybe.map3
                         (\lat -> \lng -> \zoom -> ( lat, lng, zoom ))
@@ -274,7 +274,7 @@ update msg model =
                     ( Authenticated { authModel | bounds = bounds }
                     , Cmd.batch
                         [ getAssetMetadataCmd authModel.accessToken authModel.filteredAssetType bounds
-                        , Navigation.modifyUrl ("#" ++ toString latitude ++ "|" ++ toString longitude ++ "|" ++ toString zoom)
+                        , Navigation.newUrl ("#" ++ toString latitude ++ "," ++ toString longitude ++ "," ++ toString zoom)
                         ]
                     )
 

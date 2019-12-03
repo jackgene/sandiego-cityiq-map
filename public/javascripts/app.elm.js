@@ -10230,7 +10230,7 @@ var _user$project$Main$init = function (location) {
 	var latLngZoom = function () {
 		var _p2 = A2(
 			_elm_lang$core$String$split,
-			'|',
+			',',
 			A2(_elm_lang$core$String$dropLeft, 1, location.hash));
 		if ((((_p2.ctor === '::') && (_p2._1.ctor === '::')) && (_p2._1._1.ctor === '::')) && (_p2._1._1._1.ctor === '[]')) {
 			return A4(
@@ -10479,7 +10479,7 @@ var _user$project$Main$update = F2(
 									_0: A3(_user$project$Main$getAssetMetadataCmd, _p20.accessToken, _p20.filteredAssetType, _p14),
 									_1: {
 										ctor: '::',
-										_0: _elm_lang$navigation$Navigation$modifyUrl(
+										_0: _elm_lang$navigation$Navigation$newUrl(
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												'#',
@@ -10488,13 +10488,13 @@ var _user$project$Main$update = F2(
 													_elm_lang$core$Basics$toString(_p13._0.latitude),
 													A2(
 														_elm_lang$core$Basics_ops['++'],
-														'|',
+														',',
 														A2(
 															_elm_lang$core$Basics_ops['++'],
 															_elm_lang$core$Basics$toString(_p13._0.longitude),
 															A2(
 																_elm_lang$core$Basics_ops['++'],
-																'|',
+																',',
 																_elm_lang$core$Basics$toString(_p13._0.zoom))))))),
 										_1: {ctor: '[]'}
 									}
