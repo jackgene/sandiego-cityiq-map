@@ -115,7 +115,7 @@ latLngZoom location =
                 (Result.toMaybe (String.toInt zoomStr))
 
         "" :: [] ->
-            Just (defaultLatitude, defaultLongitude, defaultZoom)
+            Just ( defaultLatitude, defaultLongitude, defaultZoom )
 
         _ ->
             Nothing
