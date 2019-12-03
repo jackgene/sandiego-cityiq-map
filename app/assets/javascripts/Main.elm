@@ -104,23 +104,23 @@ type Msg
     | NoOp
 
 
+latLngZoom : Location -> Maybe ( Float, Float, Int )
+latLngZoom location =
+    case String.split "," (String.dropLeft 1 location.hash) of
+        latStr :: lngStr :: zoomStr :: [] ->
+            Maybe.map3
+                (\lat -> \lng -> \zoom -> ( lat, lng, zoom ))
+                (Result.toMaybe (String.toFloat latStr))
+                (Result.toMaybe (String.toFloat lngStr))
+                (Result.toMaybe (String.toInt zoomStr))
+
+        _ ->
+            Nothing
+
+
 init : Location -> ( Model, Cmd Msg )
 init location =
-    let
-        latLngZoom : Maybe ( Float, Float, Int )
-        latLngZoom =
-            case String.split "," (String.dropLeft 1 location.hash) of
-                latStr :: lngStr :: zoomStr :: [] ->
-                    Maybe.map3
-                        (\lat -> \lng -> \zoom -> ( lat, lng, zoom ))
-                        (Result.toMaybe (String.toFloat latStr))
-                        (Result.toMaybe (String.toFloat lngStr))
-                        (Result.toMaybe (String.toInt zoomStr))
-
-                _ ->
-                    Nothing
-    in
-    case latLngZoom of
+    case latLngZoom location of
         Just ( lat, lng, zoom ) ->
             ( AwaitingMapBounds lat lng zoom
             , Cmd.none
@@ -284,14 +284,36 @@ update msg model =
         Authenticated authModel ->
             case msg of
                 NewMapBounds { latitude, longitude, zoom, bounds } ->
-                    ( Authenticated { authModel | bounds = bounds, dirty = True }
+                    ( Authenticated { authModel | bounds = bounds, ignoreLocationChange = True, dirty = True }
                     , Navigation.newUrl ("#" ++ toString latitude ++ "," ++ toString longitude ++ "," ++ toString zoom)
                     )
 
                 NewLocation location ->
-                    ( model
-                    , Cmd.none
-                    )
+                    if authModel.ignoreLocationChange then
+                        ( Authenticated { authModel | ignoreLocationChange = False }
+                        , Cmd.none
+                        )
+
+                    else
+                        case latLngZoom location of
+                            Just ( lat, lng, zoom ) ->
+                                let
+                                    mapState : MapState
+                                    mapState =
+                                        authModel.checkPointMapState
+                                in
+                                ( Authenticated
+                                    { authModel
+                                        | checkPointMapState =
+                                            { mapState | latitude = lat, longitude = lng, zoom = zoom }
+                                    }
+                                , Cmd.none
+                                )
+
+                            Nothing ->
+                                ( model
+                                , Navigation.modifyUrl "/"
+                                )
 
                 NewAssetTypeFilter assetType ->
                     ( Authenticated { authModel | filteredAssetType = assetType, assets = Dict.empty }
