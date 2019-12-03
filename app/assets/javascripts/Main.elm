@@ -14,7 +14,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode exposing (Value)
 import Navigation exposing (Location)
 import Task
-import Time exposing (Time)
+import Time exposing (Time, millisecond)
 
 
 
@@ -74,11 +74,12 @@ type ConsoleMessage
 
 type alias AuthenticatedModel =
     { accessToken : String
-    , initMapState : MapState
+    , checkPointMapState : MapState
     , bounds : Bounds
     , filteredAssetType : String
     , assets : Dict String CityIQAsset
     , message : Maybe ConsoleMessage
+    , dirty : Bool
     }
 
 
@@ -93,7 +94,9 @@ type Msg
     = MapReady MapEvent
     | NewMapBounds MapState
     | NewAccessToken (Result Http.Error String)
+    | NewLocation Location
     | NewAssetTypeFilter String
+    | GetAssetMetadata
     | NewAssetMetadata (Result Http.Error (List CityIQAsset))
     | GetAssetEvent { assetUid : String, eventType : String, startTime : Time, endTime : Time }
     | NewAssetEvent (Result Http.Error Value)
@@ -247,7 +250,16 @@ update msg model =
         AwaitingAuthentication ({ bounds } as mapState) ->
             case msg of
                 NewAccessToken (Ok accessToken) ->
-                    ( Authenticated (AuthenticatedModel accessToken mapState bounds defaultFilteredAssetType Dict.empty Nothing)
+                    ( Authenticated
+                        (AuthenticatedModel
+                            accessToken
+                            mapState
+                            bounds
+                            defaultFilteredAssetType
+                            Dict.empty
+                            Nothing
+                            False
+                        )
                     , getAssetMetadataCmd accessToken defaultFilteredAssetType bounds
                     )
 
@@ -271,11 +283,13 @@ update msg model =
         Authenticated authModel ->
             case msg of
                 NewMapBounds { latitude, longitude, zoom, bounds } ->
-                    ( Authenticated { authModel | bounds = bounds }
-                    , Cmd.batch
-                        [ getAssetMetadataCmd authModel.accessToken authModel.filteredAssetType bounds
-                        , Navigation.newUrl ("#" ++ toString latitude ++ "," ++ toString longitude ++ "," ++ toString zoom)
-                        ]
+                    ( Authenticated { authModel | bounds = bounds, dirty = True }
+                    , Navigation.newUrl ("#" ++ toString latitude ++ "," ++ toString longitude ++ "," ++ toString zoom)
+                    )
+
+                NewLocation location ->
+                    ( model
+                    , Cmd.none
                     )
 
                 NewAssetTypeFilter assetType ->
@@ -284,6 +298,11 @@ update msg model =
                         [ clearGoogleMapMarkersCmd ()
                         , getAssetMetadataCmd authModel.accessToken assetType authModel.bounds
                         ]
+                    )
+
+                GetAssetMetadata ->
+                    ( model
+                    , getAssetMetadataCmd authModel.accessToken authModel.filteredAssetType authModel.bounds
                     )
 
                 NewAssetMetadata (Ok assets) ->
@@ -310,7 +329,7 @@ update msg model =
                         newAssets =
                             Dict.diff incomingAssets authModel.assets
                     in
-                    ( Authenticated { authModel | assets = allAssets }
+                    ( Authenticated { authModel | assets = allAssets, dirty = False }
                     , googleMapMarkersCmd (Dict.values newAssets)
                     )
 
@@ -454,6 +473,16 @@ subscriptions model =
     Sub.batch
         [ boundsChangedSub NewMapBounds
         , getAssetEventsSub GetAssetEvent
+        , case model of
+            Authenticated { dirty } ->
+                if not dirty then
+                    Sub.none
+
+                else
+                    Time.every (500 * millisecond) (always GetAssetMetadata)
+
+            _ ->
+                Sub.none
         ]
 
 
@@ -466,8 +495,8 @@ extractLatLngZoom model =
         AwaitingAuthentication { latitude, longitude, zoom } ->
             Just ( latitude, longitude, zoom )
 
-        Authenticated { initMapState } ->
-            Just ( initMapState.latitude, initMapState.longitude, initMapState.zoom )
+        Authenticated { checkPointMapState } ->
+            Just ( checkPointMapState.latitude, checkPointMapState.longitude, checkPointMapState.zoom )
 
         _ ->
             Nothing
@@ -561,7 +590,7 @@ view model =
 main : Program Never Model Msg
 main =
     Navigation.program
-        (always NoOp)
+        NewLocation
         { init = init
         , update = update
         , subscriptions = subscriptions

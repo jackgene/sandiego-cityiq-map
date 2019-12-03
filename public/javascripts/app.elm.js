@@ -10080,7 +10080,7 @@ var _user$project$Main$extractLatLngZoom = function (model) {
 			return _elm_lang$core$Maybe$Just(
 				{ctor: '_Tuple3', _0: _p0._0.latitude, _1: _p0._0.longitude, _2: _p0._0.zoom});
 		case 'Authenticated':
-			var _p1 = _p0._0.initMapState;
+			var _p1 = _p0._0.checkPointMapState;
 			return _elm_lang$core$Maybe$Just(
 				{ctor: '_Tuple3', _0: _p1.latitude, _1: _p1.longitude, _2: _p1.zoom});
 		default:
@@ -10203,9 +10203,9 @@ var _user$project$Main$CityIQAsset = F6(
 	function (a, b, c, d, e, f) {
 		return {assetUid: a, parentAssetUid: b, eventTypes: c, assetType: d, latitude: e, longitude: f};
 	});
-var _user$project$Main$AuthenticatedModel = F6(
-	function (a, b, c, d, e, f) {
-		return {accessToken: a, initMapState: b, bounds: c, filteredAssetType: d, assets: e, message: f};
+var _user$project$Main$AuthenticatedModel = F7(
+	function (a, b, c, d, e, f, g) {
+		return {accessToken: a, checkPointMapState: b, bounds: c, filteredAssetType: d, assets: e, message: f, dirty: g};
 	});
 var _user$project$Main$Error = function (a) {
 	return {ctor: 'Error', _0: a};
@@ -10375,8 +10375,12 @@ var _user$project$Main$getAssetMetadataCmd = F3(
 				return request;
 			}());
 	});
+var _user$project$Main$GetAssetMetadata = {ctor: 'GetAssetMetadata'};
 var _user$project$Main$NewAssetTypeFilter = function (a) {
 	return {ctor: 'NewAssetTypeFilter', _0: a};
+};
+var _user$project$Main$NewLocation = function (a) {
+	return {ctor: 'NewLocation', _0: a};
 };
 var _user$project$Main$NewAccessToken = function (a) {
 	return {ctor: 'NewAccessToken', _0: a};
@@ -10437,7 +10441,7 @@ var _user$project$Main$update = F2(
 							return {
 								ctor: '_Tuple2',
 								_0: _user$project$Main$Authenticated(
-									A6(_user$project$Main$AuthenticatedModel, _p10, _p6._0, _p12, _user$project$Main$defaultFilteredAssetType, _elm_lang$core$Dict$empty, _elm_lang$core$Maybe$Nothing)),
+									A7(_user$project$Main$AuthenticatedModel, _p10, _p6._0, _p12, _user$project$Main$defaultFilteredAssetType, _elm_lang$core$Dict$empty, _elm_lang$core$Maybe$Nothing, false)),
 								_1: A3(_user$project$Main$getAssetMetadataCmd, _p10, _user$project$Main$defaultFilteredAssetType, _p12)
 							};
 						} else {
@@ -10462,52 +10466,44 @@ var _user$project$Main$update = F2(
 						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
 			case 'Authenticated':
-				var _p20 = _p6._0;
+				var _p19 = _p6._0;
 				var _p13 = msg;
 				switch (_p13.ctor) {
 					case 'NewMapBounds':
-						var _p14 = _p13._0.bounds;
 						return {
 							ctor: '_Tuple2',
 							_0: _user$project$Main$Authenticated(
 								_elm_lang$core$Native_Utils.update(
-									_p20,
-									{bounds: _p14})),
-							_1: _elm_lang$core$Platform_Cmd$batch(
-								{
-									ctor: '::',
-									_0: A3(_user$project$Main$getAssetMetadataCmd, _p20.accessToken, _p20.filteredAssetType, _p14),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$navigation$Navigation$newUrl(
+									_p19,
+									{bounds: _p13._0.bounds, dirty: true})),
+							_1: _elm_lang$navigation$Navigation$newUrl(
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									'#',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										_elm_lang$core$Basics$toString(_p13._0.latitude),
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											',',
 											A2(
 												_elm_lang$core$Basics_ops['++'],
-												'#',
+												_elm_lang$core$Basics$toString(_p13._0.longitude),
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													_elm_lang$core$Basics$toString(_p13._0.latitude),
-													A2(
-														_elm_lang$core$Basics_ops['++'],
-														',',
-														A2(
-															_elm_lang$core$Basics_ops['++'],
-															_elm_lang$core$Basics$toString(_p13._0.longitude),
-															A2(
-																_elm_lang$core$Basics_ops['++'],
-																',',
-																_elm_lang$core$Basics$toString(_p13._0.zoom))))))),
-										_1: {ctor: '[]'}
-									}
-								})
+													',',
+													_elm_lang$core$Basics$toString(_p13._0.zoom)))))))
 						};
+					case 'NewLocation':
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 					case 'NewAssetTypeFilter':
-						var _p15 = _p13._0;
+						var _p14 = _p13._0;
 						return {
 							ctor: '_Tuple2',
 							_0: _user$project$Main$Authenticated(
 								_elm_lang$core$Native_Utils.update(
-									_p20,
-									{filteredAssetType: _p15, assets: _elm_lang$core$Dict$empty})),
+									_p19,
+									{filteredAssetType: _p14, assets: _elm_lang$core$Dict$empty})),
 							_1: _elm_lang$core$Platform_Cmd$batch(
 								{
 									ctor: '::',
@@ -10515,10 +10511,16 @@ var _user$project$Main$update = F2(
 										{ctor: '_Tuple0'}),
 									_1: {
 										ctor: '::',
-										_0: A3(_user$project$Main$getAssetMetadataCmd, _p20.accessToken, _p15, _p20.bounds),
+										_0: A3(_user$project$Main$getAssetMetadataCmd, _p19.accessToken, _p14, _p19.bounds),
 										_1: {ctor: '[]'}
 									}
 								})
+						};
+					case 'GetAssetMetadata':
+						return {
+							ctor: '_Tuple2',
+							_0: model,
+							_1: A3(_user$project$Main$getAssetMetadataCmd, _p19.accessToken, _p19.filteredAssetType, _p19.bounds)
 						};
 					case 'NewAssetMetadata':
 						if (_p13._0.ctor === 'Ok') {
@@ -10530,14 +10532,14 @@ var _user$project$Main$update = F2(
 									}),
 								_elm_lang$core$Dict$empty,
 								_p13._0._0);
-							var allAssets = A2(_elm_lang$core$Dict$union, _p20.assets, incomingAssets);
-							var newAssets = A2(_elm_lang$core$Dict$diff, incomingAssets, _p20.assets);
+							var allAssets = A2(_elm_lang$core$Dict$union, _p19.assets, incomingAssets);
+							var newAssets = A2(_elm_lang$core$Dict$diff, incomingAssets, _p19.assets);
 							return {
 								ctor: '_Tuple2',
 								_0: _user$project$Main$Authenticated(
 									_elm_lang$core$Native_Utils.update(
-										_p20,
-										{assets: allAssets})),
+										_p19,
+										{assets: allAssets, dirty: false})),
 								_1: _user$project$Main$googleMapMarkersCmd(
 									_elm_lang$core$Dict$values(newAssets))
 							};
@@ -10547,7 +10549,7 @@ var _user$project$Main$update = F2(
 									ctor: '_Tuple2',
 									_0: (_elm_lang$core$Native_Utils.eq(_p13._0._0._0.status.code, 500) && A2(_elm_lang$core$String$contains, 'Assets not found ', _p13._0._0._0.body)) ? model : _user$project$Main$Authenticated(
 										_elm_lang$core$Native_Utils.update(
-											_p20,
+											_p19,
 											{
 												message: _elm_lang$core$Maybe$Just(
 													_user$project$Main$Error(
@@ -10560,7 +10562,7 @@ var _user$project$Main$update = F2(
 									ctor: '_Tuple2',
 									_0: _user$project$Main$Authenticated(
 										_elm_lang$core$Native_Utils.update(
-											_p20,
+											_p19,
 											{
 												message: _elm_lang$core$Maybe$Just(
 													_user$project$Main$Error(
@@ -10571,7 +10573,7 @@ var _user$project$Main$update = F2(
 							}
 						}
 					case 'GetAssetEvent':
-						var _p17 = _p13._0.eventType;
+						var _p16 = _p13._0.eventType;
 						return {
 							ctor: '_Tuple2',
 							_0: model,
@@ -10580,8 +10582,8 @@ var _user$project$Main$update = F2(
 								_user$project$Main$NewAssetEvent,
 								function () {
 									var predixZoneId = function () {
-										var _p16 = _p17;
-										switch (_p16) {
+										var _p15 = _p16;
+										switch (_p15) {
 											case 'PKIN':
 												return 'SD-IE-PARKING';
 											case 'PKOUT':
@@ -10621,7 +10623,7 @@ var _user$project$Main$update = F2(
 												'/events?eventType=',
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													_p17,
+													_p16,
 													A2(
 														_elm_lang$core$Basics_ops['++'],
 														'&startTime=',
@@ -10643,7 +10645,7 @@ var _user$project$Main$update = F2(
 												_0: A2(
 													_elm_lang$http$Http$header,
 													'Authorization',
-													A2(_elm_lang$core$Basics_ops['++'], 'Bearer ', _p20.accessToken)),
+													A2(_elm_lang$core$Basics_ops['++'], 'Bearer ', _p19.accessToken)),
 												_1: {
 													ctor: '::',
 													_0: A2(_elm_lang$http$Http$header, 'Predix-Zone-Id', predixZoneId),
@@ -10665,7 +10667,7 @@ var _user$project$Main$update = F2(
 								ctor: '_Tuple2',
 								_0: _user$project$Main$Authenticated(
 									_elm_lang$core$Native_Utils.update(
-										_p20,
+										_p19,
 										{
 											message: _elm_lang$core$Maybe$Just(
 												_user$project$Main$Info(
@@ -10681,7 +10683,7 @@ var _user$project$Main$update = F2(
 								ctor: '_Tuple2',
 								_0: _user$project$Main$Authenticated(
 									_elm_lang$core$Native_Utils.update(
-										_p20,
+										_p19,
 										{
 											message: _elm_lang$core$Maybe$Just(
 												_user$project$Main$Error(
@@ -10693,24 +10695,24 @@ var _user$project$Main$update = F2(
 					case 'NoOp':
 						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 					case 'MapReady':
-						var _p18 = A2(
+						var _p17 = A2(
 							_elm_lang$core$Debug$log,
 							'Unexpected message/state',
 							{ctor: '_Tuple2', _0: _p13, _1: model});
 						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 					default:
-						var _p19 = A2(
+						var _p18 = A2(
 							_elm_lang$core$Debug$log,
 							'Unexpected message/state',
 							{ctor: '_Tuple2', _0: _p13, _1: model});
 						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
 			default:
-				var _p21 = msg;
-				var _p22 = A2(
+				var _p20 = msg;
+				var _p21 = A2(
 					_elm_lang$core$Debug$log,
 					'Unexpected message/state',
-					{ctor: '_Tuple2', _0: _p21, _1: model});
+					{ctor: '_Tuple2', _0: _p20, _1: model});
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 		}
 	});
@@ -10725,7 +10727,21 @@ var _user$project$Main$subscriptions = function (model) {
 			_1: {
 				ctor: '::',
 				_0: _user$project$Main$getAssetEventsSub(_user$project$Main$GetAssetEvent),
-				_1: {ctor: '[]'}
+				_1: {
+					ctor: '::',
+					_0: function () {
+						var _p22 = model;
+						if (_p22.ctor === 'Authenticated') {
+							return (!_p22._0.dirty) ? _elm_lang$core$Platform_Sub$none : A2(
+								_elm_lang$core$Time$every,
+								500 * _elm_lang$core$Time$millisecond,
+								_elm_lang$core$Basics$always(_user$project$Main$GetAssetMetadata));
+						} else {
+							return _elm_lang$core$Platform_Sub$none;
+						}
+					}(),
+					_1: {ctor: '[]'}
+				}
 			}
 		});
 };
@@ -11027,7 +11043,7 @@ var _user$project$Main$view = function (model) {
 };
 var _user$project$Main$main = A2(
 	_elm_lang$navigation$Navigation$program,
-	_elm_lang$core$Basics$always(_user$project$Main$NoOp),
+	_user$project$Main$NewLocation,
 	{init: _user$project$Main$init, update: _user$project$Main$update, subscriptions: _user$project$Main$subscriptions, view: _user$project$Main$view})();
 
 var Elm = {};
