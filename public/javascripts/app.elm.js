@@ -10087,32 +10087,49 @@ var _user$project$Main$extractLatLngZoom = function (model) {
 			return _elm_lang$core$Maybe$Nothing;
 	}
 };
+var _user$project$Main$defaultFilteredAssetType = 'CAMERA';
+var _user$project$Main$defaultZoom = 15;
+var _user$project$Main$defaultLongitude = -117.1600173;
+var _user$project$Main$defaultLatitude = 32.71143062;
 var _user$project$Main$latLngZoom = function (location) {
 	var _p2 = A2(
 		_elm_lang$core$String$split,
 		',',
 		A2(_elm_lang$core$String$dropLeft, 1, location.hash));
-	if ((((_p2.ctor === '::') && (_p2._1.ctor === '::')) && (_p2._1._1.ctor === '::')) && (_p2._1._1._1.ctor === '[]')) {
-		return A4(
-			_elm_lang$core$Maybe$map3,
-			F3(
-				function (lat, lng, zoom) {
-					return {ctor: '_Tuple3', _0: lat, _1: lng, _2: zoom};
-				}),
-			_elm_lang$core$Result$toMaybe(
-				_elm_lang$core$String$toFloat(_p2._0)),
-			_elm_lang$core$Result$toMaybe(
-				_elm_lang$core$String$toFloat(_p2._1._0)),
-			_elm_lang$core$Result$toMaybe(
-				_elm_lang$core$String$toInt(_p2._1._1._0)));
-	} else {
-		return _elm_lang$core$Maybe$Nothing;
-	}
+	_v1_2:
+	do {
+		if (_p2.ctor === '::') {
+			if (_p2._1.ctor === '::') {
+				if ((_p2._1._1.ctor === '::') && (_p2._1._1._1.ctor === '[]')) {
+					return A4(
+						_elm_lang$core$Maybe$map3,
+						F3(
+							function (lat, lng, zoom) {
+								return {ctor: '_Tuple3', _0: lat, _1: lng, _2: zoom};
+							}),
+						_elm_lang$core$Result$toMaybe(
+							_elm_lang$core$String$toFloat(_p2._0)),
+						_elm_lang$core$Result$toMaybe(
+							_elm_lang$core$String$toFloat(_p2._1._0)),
+						_elm_lang$core$Result$toMaybe(
+							_elm_lang$core$String$toInt(_p2._1._1._0)));
+				} else {
+					break _v1_2;
+				}
+			} else {
+				if (_p2._0 === '') {
+					return _elm_lang$core$Maybe$Just(
+						{ctor: '_Tuple3', _0: _user$project$Main$defaultLatitude, _1: _user$project$Main$defaultLongitude, _2: _user$project$Main$defaultZoom});
+				} else {
+					break _v1_2;
+				}
+			}
+		} else {
+			break _v1_2;
+		}
+	} while(false);
+	return _elm_lang$core$Maybe$Nothing;
 };
-var _user$project$Main$defaultFilteredAssetType = 'CAMERA';
-var _user$project$Main$defaultZoom = 15;
-var _user$project$Main$defaultLongitude = -117.1600173;
-var _user$project$Main$defaultLatitude = 32.71143062;
 var _user$project$Main$clearGoogleMapMarkersCmd = _elm_lang$core$Native_Platform.outgoingPort(
 	'clearGoogleMapMarkersCmd',
 	function (v) {
