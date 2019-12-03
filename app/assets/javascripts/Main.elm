@@ -4,8 +4,8 @@ import BasicAuth
 import Dict exposing (Dict)
 import Dom.Scroll
 import GoogleMap exposing (googleMap, googleMapMarker)
-import GoogleMap.Attributes exposing (apiKey, latitude, longitude, zoom)
-import GoogleMap.Events exposing (MapEvent, googleMapReady)
+import GoogleMap.Attributes exposing (apiKey, dragEvents, latitude, longitude, zoom)
+import GoogleMap.Events exposing (MapEvent, onDragend, onReady, onZoomChanged)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
@@ -93,6 +93,7 @@ type Model
 
 type Msg
     = MapReady MapEvent
+    | MapPannedZoomed MapEvent
     | NewMapBounds MapState
     | NewAccessToken (Result Http.Error String)
     | NewLocation Location
@@ -287,7 +288,16 @@ update msg model =
         Authenticated authModel ->
             case msg of
                 NewMapBounds { latitude, longitude, zoom, bounds } ->
-                    ( Authenticated { authModel | bounds = bounds, ignoreLocationChange = True, dirty = True }
+                    ( Authenticated { authModel | bounds = bounds, dirty = True }
+                    , Cmd.none
+                    )
+
+                MapPannedZoomed { latitude, longitude, zoom } ->
+                    let
+                        _ =
+                            Debug.log "panned/zoomed" "happened!"
+                    in
+                    ( Authenticated { authModel | ignoreLocationChange = True }
                     , Navigation.newUrl ("#" ++ toString latitude ++ "," ++ toString longitude ++ "," ++ toString zoom)
                     )
 
@@ -532,22 +542,24 @@ view : Model -> Html Msg
 view model =
     div [ id "root" ]
         [ googleMap
-            (case extractLatLngZoom model of
-                Just ( lat, lng, zm ) ->
-                    [ latitude lat
-                    , longitude lng
-                    , zoom zm
-                    , apiKey "AIzaSyD6jMwmDZ4Bvgee_-mMN4PUqBaK-qitqAg"
-                    , googleMapReady MapReady
-                    ]
+            (apiKey "AIzaSyD6jMwmDZ4Bvgee_-mMN4PUqBaK-qitqAg"
+                :: dragEvents True
+                :: onReady MapReady
+                :: onDragend MapPannedZoomed
+                :: onZoomChanged MapPannedZoomed
+                :: (case extractLatLngZoom model of
+                        Just ( lat, lng, zm ) ->
+                            [ latitude lat
+                            , longitude lng
+                            , zoom zm
+                            ]
 
-                Nothing ->
-                    [ latitude defaultLatitude
-                    , longitude defaultLongitude
-                    , zoom defaultZoom
-                    , apiKey "AIzaSyD6jMwmDZ4Bvgee_-mMN4PUqBaK-qitqAg"
-                    , googleMapReady MapReady
-                    ]
+                        Nothing ->
+                            [ latitude defaultLatitude
+                            , longitude defaultLongitude
+                            , zoom defaultZoom
+                            ]
+                   )
             )
             [ Html.node "link" [ rel "import", href "/assets/javascripts/google-map/google-map.html" ] []
             ]

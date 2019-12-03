@@ -9,6 +9,11 @@ apiKey key =
     attribute "api-key" key
 
 
+dragEvents : Bool -> Attribute a
+dragEvents enabled =
+    attribute "drag-events" (toString enabled)
+
+
 latitude : Float -> Attribute a
 latitude lat =
     attribute "latitude" (toString lat)

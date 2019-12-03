@@ -20,28 +20,21 @@
       let openInfoWindow = null;
       const date = new Date();
 
-      let sendNewBounds = function() {
-        app.ports.boundsChangedSub.send(
-          {
-            "latitude": map.map.getCenter().lat(),
-            "longitude": map.map.getCenter().lng(),
-            "zoom": map.map.getZoom(),
-            "bounds": JSON.parse(JSON.stringify(map.map.getBounds()))
-          }
-        );
-      };
-
       app.ports.initBoundsChangedListenerCmd.subscribe(function (evt) {
         map = evt.target;
-        let boundsChangedListener = map.map.addListener('bounds_changed', sendNewBounds);
         map.map.addListener(
           'bounds_changed',
           function() {
-            boundsChangedListener.remove();
+            app.ports.boundsChangedSub.send(
+              {
+                "latitude": map.map.getCenter().lat(),
+                "longitude": map.map.getCenter().lng(),
+                "zoom": map.map.getZoom(),
+                "bounds": JSON.parse(JSON.stringify(map.map.getBounds()))
+              }
+            );
           }
         );
-        map.map.addListener('dragend', sendNewBounds);
-        map.map.addListener('zoom_changed', sendNewBounds);
       });
       app.ports.googleMapMarkersCmd.subscribe(function (assets) {
         for (let asset of assets) {
