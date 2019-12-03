@@ -79,6 +79,7 @@ type alias AuthenticatedModel =
     , filteredAssetType : String
     , assets : Dict String CityIQAsset
     , message : Maybe ConsoleMessage
+    , ignoreLocationChange : Bool
     , dirty : Bool
     }
 
@@ -251,15 +252,15 @@ update msg model =
             case msg of
                 NewAccessToken (Ok accessToken) ->
                     ( Authenticated
-                        (AuthenticatedModel
-                            accessToken
-                            mapState
-                            bounds
-                            defaultFilteredAssetType
-                            Dict.empty
-                            Nothing
-                            False
-                        )
+                        { accessToken = accessToken
+                        , checkPointMapState = mapState
+                        , bounds = bounds
+                        , filteredAssetType = defaultFilteredAssetType
+                        , assets = Dict.empty
+                        , message = Nothing
+                        , ignoreLocationChange = False
+                        , dirty = False
+                        }
                     , getAssetMetadataCmd accessToken defaultFilteredAssetType bounds
                     )
 

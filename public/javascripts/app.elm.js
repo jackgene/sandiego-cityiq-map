@@ -10203,9 +10203,9 @@ var _user$project$Main$CityIQAsset = F6(
 	function (a, b, c, d, e, f) {
 		return {assetUid: a, parentAssetUid: b, eventTypes: c, assetType: d, latitude: e, longitude: f};
 	});
-var _user$project$Main$AuthenticatedModel = F7(
-	function (a, b, c, d, e, f, g) {
-		return {accessToken: a, checkPointMapState: b, bounds: c, filteredAssetType: d, assets: e, message: f, dirty: g};
+var _user$project$Main$AuthenticatedModel = F8(
+	function (a, b, c, d, e, f, g, h) {
+		return {accessToken: a, checkPointMapState: b, bounds: c, filteredAssetType: d, assets: e, message: f, ignoreLocationChange: g, dirty: h};
 	});
 var _user$project$Main$Error = function (a) {
 	return {ctor: 'Error', _0: a};
@@ -10441,7 +10441,7 @@ var _user$project$Main$update = F2(
 							return {
 								ctor: '_Tuple2',
 								_0: _user$project$Main$Authenticated(
-									A7(_user$project$Main$AuthenticatedModel, _p10, _p6._0, _p12, _user$project$Main$defaultFilteredAssetType, _elm_lang$core$Dict$empty, _elm_lang$core$Maybe$Nothing, false)),
+									{accessToken: _p10, checkPointMapState: _p6._0, bounds: _p12, filteredAssetType: _user$project$Main$defaultFilteredAssetType, assets: _elm_lang$core$Dict$empty, message: _elm_lang$core$Maybe$Nothing, ignoreLocationChange: false, dirty: false}),
 								_1: A3(_user$project$Main$getAssetMetadataCmd, _p10, _user$project$Main$defaultFilteredAssetType, _p12)
 							};
 						} else {
