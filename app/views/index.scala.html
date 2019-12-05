@@ -39,7 +39,7 @@
       app.ports.googleMapMarkersCmd.subscribe(function (assets) {
         for (let asset of assets) {
           let eventButtonsHtml = "";
-          for (let eventType of asset.eventTypes) {
+          for (let eventType of asset.eventTypes.sort()) {
             let param =
               `{
                 "assetUid": "${asset.assetUid}",
