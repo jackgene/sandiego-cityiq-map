@@ -14,6 +14,11 @@ dragEvents enabled =
     attribute "drag-events" (toString enabled)
 
 
+label : String -> Attribute a
+label name=
+    attribute "label" name
+
+
 latitude : Float -> Attribute a
 latitude lat =
     attribute "latitude" (toString lat)
@@ -22,6 +27,11 @@ latitude lat =
 longitude : Float -> Attribute a
 longitude lng =
     attribute "longitude" (toString lng)
+
+
+slot : String -> Attribute a
+slot slotType =
+    attribute "slot" slotType
 
 
 zoom : Int -> Attribute a

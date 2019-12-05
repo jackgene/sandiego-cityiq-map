@@ -4,18 +4,19 @@ html, body, #root {
 }
 
 google-map {
-  bottom: 160px;
+  height: 75%;
+  top: 0;
 }
 
 #asset-type-filter {
   position: absolute;
+  top: 60px;
   left: 10px;
-  bottom: 190px;
 }
 
 #console {
     position: absolute;
-    height: 160px;
+    height: 25%;
     left: 0;
     right: 0;
     bottom: 0;

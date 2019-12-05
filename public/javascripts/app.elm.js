@@ -10012,6 +10012,9 @@ var _user$project$GoogleMap_Attributes$zoom = function (level) {
 		'zoom',
 		_elm_lang$core$Basics$toString(level));
 };
+var _user$project$GoogleMap_Attributes$slot = function (slotType) {
+	return A2(_elm_lang$html$Html_Attributes$attribute, 'slot', slotType);
+};
 var _user$project$GoogleMap_Attributes$longitude = function (lng) {
 	return A2(
 		_elm_lang$html$Html_Attributes$attribute,
@@ -10023,6 +10026,9 @@ var _user$project$GoogleMap_Attributes$latitude = function (lat) {
 		_elm_lang$html$Html_Attributes$attribute,
 		'latitude',
 		_elm_lang$core$Basics$toString(lat));
+};
+var _user$project$GoogleMap_Attributes$label = function (name) {
+	return A2(_elm_lang$html$Html_Attributes$attribute, 'label', name);
 };
 var _user$project$GoogleMap_Attributes$dragEvents = function (enabled) {
 	return A2(
