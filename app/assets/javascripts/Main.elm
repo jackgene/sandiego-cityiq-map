@@ -293,10 +293,6 @@ update msg model =
                     )
 
                 MapPannedZoomed { latitude, longitude, zoom } ->
-                    let
-                        _ =
-                            Debug.log "panned/zoomed" "happened!"
-                    in
                     ( Authenticated { authModel | ignoreLocationChange = True }
                     , Navigation.newUrl ("#" ++ toString latitude ++ "," ++ toString longitude ++ "," ++ toString zoom)
                     )
