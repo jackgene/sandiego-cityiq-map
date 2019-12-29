@@ -10468,7 +10468,7 @@ var _user$project$Main$update = F2(
 											method: 'GET',
 											headers: {
 												ctor: '::',
-												_0: A2(_kallaspriit$elm_basic_auth$BasicAuth$buildAuthorizationHeader, 'PublicAccess', 'uVeeMuiue4k='),
+												_0: A2(_kallaspriit$elm_basic_auth$BasicAuth$buildAuthorizationHeader, 'PublicAccess', 'qPKIadEsoHjyh226Snz7'),
 												_1: {ctor: '[]'}
 											},
 											url: 'https://auth.aa.cityiq.io/oauth/token?grant_type=client_credentials',

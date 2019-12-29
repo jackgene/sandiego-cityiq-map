@@ -233,7 +233,7 @@ update msg model =
                             request =
                                 Http.request
                                     { method = "GET"
-                                    , headers = [ BasicAuth.buildAuthorizationHeader "PublicAccess" "uVeeMuiue4k=" ]
+                                    , headers = [ BasicAuth.buildAuthorizationHeader "PublicAccess" "qPKIadEsoHjyh226Snz7" ]
                                     , url = "https://auth.aa.cityiq.io/oauth/token?grant_type=client_credentials"
                                     , body = Http.emptyBody
                                     , expect = Http.expectJson accessTokenDecoder
