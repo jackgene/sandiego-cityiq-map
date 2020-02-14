@@ -3,7 +3,7 @@ port module Main exposing (..)
 import BasicAuth
 import Dict exposing (Dict)
 import Dom.Scroll
-import GoogleMap exposing (googleMap, googleMapMarker)
+import GoogleMap exposing (googleMap)
 import GoogleMap.Attributes exposing (apiKey, dragEvents, latitude, longitude, zoom)
 import GoogleMap.Events exposing (MapEvent, onDragend, onReady, onZoomChanged)
 import Html exposing (..)
@@ -380,7 +380,7 @@ update msg model =
                     , Cmd.none
                     )
 
-                (GetAssetEvent { assetUid, eventType, startTime, endTime }) as req ->
+                GetAssetEvent { assetUid, eventType, startTime, endTime } ->
                     ( model
                     , Http.send NewAssetEvent
                         (let
