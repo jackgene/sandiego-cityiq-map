@@ -1,5 +1,5 @@
 {
-  "name": "Start on Heroku: Scala",
-  "description": "A barebones Scala app (using the Play framework), which can easily be deployed to Heroku.",
+  "name": "San Diego CityIQ Map",
+  "description": "A map of all of San Diego's CityIQ devices.",
   "image": "heroku/scala"
 }
