@@ -9651,358 +9651,6 @@ var _elm_lang$navigation$Navigation$onEffects = F4(
 	});
 _elm_lang$core$Native_Platform.effectManagers['Navigation'] = {pkg: 'elm-lang/navigation', init: _elm_lang$navigation$Navigation$init, onEffects: _elm_lang$navigation$Navigation$onEffects, onSelfMsg: _elm_lang$navigation$Navigation$onSelfMsg, tag: 'fx', cmdMap: _elm_lang$navigation$Navigation$cmdMap, subMap: _elm_lang$navigation$Navigation$subMap};
 
-var _truqu$elm_base64$BitList$partition = F2(
-	function (size, list) {
-		if (_elm_lang$core$Native_Utils.cmp(
-			_elm_lang$core$List$length(list),
-			size) < 1) {
-			return {
-				ctor: '::',
-				_0: list,
-				_1: {ctor: '[]'}
-			};
-		} else {
-			var partitionTail = F3(
-				function (size, list, res) {
-					partitionTail:
-					while (true) {
-						var _p0 = list;
-						if (_p0.ctor === '[]') {
-							return res;
-						} else {
-							var _v1 = size,
-								_v2 = A2(_elm_lang$core$List$drop, size, list),
-								_v3 = {
-								ctor: '::',
-								_0: A2(_elm_lang$core$List$take, size, list),
-								_1: res
-							};
-							size = _v1;
-							list = _v2;
-							res = _v3;
-							continue partitionTail;
-						}
-					}
-				});
-			return _elm_lang$core$List$reverse(
-				A3(
-					partitionTail,
-					size,
-					list,
-					{ctor: '[]'}));
-		}
-	});
-var _truqu$elm_base64$BitList$toByteReverse = function (bitList) {
-	var _p1 = bitList;
-	if (_p1.ctor === '[]') {
-		return 0;
-	} else {
-		if (_p1._0.ctor === 'Off') {
-			return 2 * _truqu$elm_base64$BitList$toByteReverse(_p1._1);
-		} else {
-			return 1 + (2 * _truqu$elm_base64$BitList$toByteReverse(_p1._1));
-		}
-	}
-};
-var _truqu$elm_base64$BitList$toByte = function (bitList) {
-	return _truqu$elm_base64$BitList$toByteReverse(
-		_elm_lang$core$List$reverse(bitList));
-};
-var _truqu$elm_base64$BitList$Off = {ctor: 'Off'};
-var _truqu$elm_base64$BitList$On = {ctor: 'On'};
-var _truqu$elm_base64$BitList$fromNumber = function ($int) {
-	return _elm_lang$core$Native_Utils.eq($int, 0) ? {ctor: '[]'} : (_elm_lang$core$Native_Utils.eq(
-		A2(_elm_lang$core$Basics_ops['%'], $int, 2),
-		1) ? A2(
-		_elm_lang$core$List$append,
-		_truqu$elm_base64$BitList$fromNumber(($int / 2) | 0),
-		{
-			ctor: '::',
-			_0: _truqu$elm_base64$BitList$On,
-			_1: {ctor: '[]'}
-		}) : A2(
-		_elm_lang$core$List$append,
-		_truqu$elm_base64$BitList$fromNumber(($int / 2) | 0),
-		{
-			ctor: '::',
-			_0: _truqu$elm_base64$BitList$Off,
-			_1: {ctor: '[]'}
-		}));
-};
-var _truqu$elm_base64$BitList$fromNumberWithSize = F2(
-	function (number, size) {
-		var bitList = _truqu$elm_base64$BitList$fromNumber(number);
-		var paddingSize = size - _elm_lang$core$List$length(bitList);
-		return A2(
-			_elm_lang$core$List$append,
-			A2(_elm_lang$core$List$repeat, paddingSize, _truqu$elm_base64$BitList$Off),
-			bitList);
-	});
-var _truqu$elm_base64$BitList$fromByte = function ($byte) {
-	return A2(_truqu$elm_base64$BitList$fromNumberWithSize, $byte, 8);
-};
-
-var _truqu$elm_base64$Base64$dropLast = F2(
-	function (number, list) {
-		return _elm_lang$core$List$reverse(
-			A2(
-				_elm_lang$core$List$drop,
-				number,
-				_elm_lang$core$List$reverse(list)));
-	});
-var _truqu$elm_base64$Base64$partitionBits = function (list) {
-	var list_ = A3(
-		_elm_lang$core$List$foldr,
-		_elm_lang$core$List$append,
-		{ctor: '[]'},
-		A2(_elm_lang$core$List$map, _truqu$elm_base64$BitList$fromByte, list));
-	return A2(
-		_elm_lang$core$List$map,
-		_truqu$elm_base64$BitList$toByte,
-		A2(_truqu$elm_base64$BitList$partition, 6, list_));
-};
-var _truqu$elm_base64$Base64$base64CharsList = _elm_lang$core$String$toList('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/');
-var _truqu$elm_base64$Base64$base64Map = function () {
-	var insert = F2(
-		function (_p0, dict) {
-			var _p1 = _p0;
-			return A3(_elm_lang$core$Dict$insert, _p1._1, _p1._0, dict);
-		});
-	return A3(
-		_elm_lang$core$List$foldl,
-		insert,
-		_elm_lang$core$Dict$empty,
-		A2(
-			_elm_lang$core$List$indexedMap,
-			F2(
-				function (v0, v1) {
-					return {ctor: '_Tuple2', _0: v0, _1: v1};
-				}),
-			_truqu$elm_base64$Base64$base64CharsList));
-}();
-var _truqu$elm_base64$Base64$isValid = function (string) {
-	var string_ = A2(_elm_lang$core$String$endsWith, '==', string) ? A2(_elm_lang$core$String$dropRight, 2, string) : (A2(_elm_lang$core$String$endsWith, '=', string) ? A2(_elm_lang$core$String$dropRight, 1, string) : string);
-	var isBase64Char = function ($char) {
-		return A2(_elm_lang$core$Dict$member, $char, _truqu$elm_base64$Base64$base64Map);
-	};
-	return A2(_elm_lang$core$String$all, isBase64Char, string_);
-};
-var _truqu$elm_base64$Base64$toBase64BitList = function (string) {
-	var endingEquals = A2(_elm_lang$core$String$endsWith, '==', string) ? 2 : (A2(_elm_lang$core$String$endsWith, '=', string) ? 1 : 0);
-	var stripped = _elm_lang$core$String$toList(
-		A2(_elm_lang$core$String$dropRight, endingEquals, string));
-	var base64ToInt = function ($char) {
-		var _p2 = A2(_elm_lang$core$Dict$get, $char, _truqu$elm_base64$Base64$base64Map);
-		if (_p2.ctor === 'Just') {
-			return _p2._0;
-		} else {
-			return -1;
-		}
-	};
-	var numberList = A2(_elm_lang$core$List$map, base64ToInt, stripped);
-	return A2(
-		_truqu$elm_base64$Base64$dropLast,
-		endingEquals * 2,
-		A2(
-			_elm_lang$core$List$concatMap,
-			A2(_elm_lang$core$Basics$flip, _truqu$elm_base64$BitList$fromNumberWithSize, 6),
-			numberList));
-};
-var _truqu$elm_base64$Base64$toCharList = function (bitList) {
-	var array = _elm_lang$core$Array$fromList(_truqu$elm_base64$Base64$base64CharsList);
-	var toBase64Char = function (index) {
-		return A2(
-			_elm_lang$core$Maybe$withDefault,
-			_elm_lang$core$Native_Utils.chr('!'),
-			A2(_elm_lang$core$Array$get, index, array));
-	};
-	var toChars = function (_p3) {
-		var _p4 = _p3;
-		var _p5 = {ctor: '_Tuple3', _0: _p4._0, _1: _p4._1, _2: _p4._2};
-		if (_p5._2 === -1) {
-			if (_p5._1 === -1) {
-				return A2(
-					_elm_lang$core$List$append,
-					A2(
-						_truqu$elm_base64$Base64$dropLast,
-						2,
-						A2(
-							_elm_lang$core$List$map,
-							toBase64Char,
-							_truqu$elm_base64$Base64$partitionBits(
-								{
-									ctor: '::',
-									_0: _p5._0,
-									_1: {
-										ctor: '::',
-										_0: 0,
-										_1: {
-											ctor: '::',
-											_0: 0,
-											_1: {ctor: '[]'}
-										}
-									}
-								}))),
-					{
-						ctor: '::',
-						_0: _elm_lang$core$Native_Utils.chr('='),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$core$Native_Utils.chr('='),
-							_1: {ctor: '[]'}
-						}
-					});
-			} else {
-				return A2(
-					_elm_lang$core$List$append,
-					A2(
-						_truqu$elm_base64$Base64$dropLast,
-						1,
-						A2(
-							_elm_lang$core$List$map,
-							toBase64Char,
-							_truqu$elm_base64$Base64$partitionBits(
-								{
-									ctor: '::',
-									_0: _p5._0,
-									_1: {
-										ctor: '::',
-										_0: _p5._1,
-										_1: {
-											ctor: '::',
-											_0: 0,
-											_1: {ctor: '[]'}
-										}
-									}
-								}))),
-					{
-						ctor: '::',
-						_0: _elm_lang$core$Native_Utils.chr('='),
-						_1: {ctor: '[]'}
-					});
-			}
-		} else {
-			return A2(
-				_elm_lang$core$List$map,
-				toBase64Char,
-				_truqu$elm_base64$Base64$partitionBits(
-					{
-						ctor: '::',
-						_0: _p5._0,
-						_1: {
-							ctor: '::',
-							_0: _p5._1,
-							_1: {
-								ctor: '::',
-								_0: _p5._2,
-								_1: {ctor: '[]'}
-							}
-						}
-					}));
-		}
-	};
-	return A2(_elm_lang$core$List$concatMap, toChars, bitList);
-};
-var _truqu$elm_base64$Base64$toTupleList = function () {
-	var toTupleListHelp = F2(
-		function (acc, list) {
-			toTupleListHelp:
-			while (true) {
-				var _p6 = list;
-				if (_p6.ctor === '::') {
-					if (_p6._1.ctor === '::') {
-						if (_p6._1._1.ctor === '::') {
-							var _v5 = {
-								ctor: '::',
-								_0: {ctor: '_Tuple3', _0: _p6._0, _1: _p6._1._0, _2: _p6._1._1._0},
-								_1: acc
-							},
-								_v6 = _p6._1._1._1;
-							acc = _v5;
-							list = _v6;
-							continue toTupleListHelp;
-						} else {
-							return {
-								ctor: '::',
-								_0: {ctor: '_Tuple3', _0: _p6._0, _1: _p6._1._0, _2: -1},
-								_1: acc
-							};
-						}
-					} else {
-						return {
-							ctor: '::',
-							_0: {ctor: '_Tuple3', _0: _p6._0, _1: -1, _2: -1},
-							_1: acc
-						};
-					}
-				} else {
-					return acc;
-				}
-			}
-		});
-	return function (_p7) {
-		return _elm_lang$core$List$reverse(
-			A2(
-				toTupleListHelp,
-				{ctor: '[]'},
-				_p7));
-	};
-}();
-var _truqu$elm_base64$Base64$toCodeList = function (string) {
-	return A2(
-		_elm_lang$core$List$map,
-		_elm_lang$core$Char$toCode,
-		_elm_lang$core$String$toList(string));
-};
-var _truqu$elm_base64$Base64$decode = function (s) {
-	if (!_truqu$elm_base64$Base64$isValid(s)) {
-		return _elm_lang$core$Result$Err('Error while decoding');
-	} else {
-		var bitList = A2(
-			_elm_lang$core$List$map,
-			_truqu$elm_base64$BitList$toByte,
-			A2(
-				_truqu$elm_base64$BitList$partition,
-				8,
-				_truqu$elm_base64$Base64$toBase64BitList(s)));
-		var charList = A2(_elm_lang$core$List$map, _elm_lang$core$Char$fromCode, bitList);
-		return _elm_lang$core$Result$Ok(
-			_elm_lang$core$String$fromList(charList));
-	}
-};
-var _truqu$elm_base64$Base64$encode = function (s) {
-	return _elm_lang$core$Result$Ok(
-		_elm_lang$core$String$fromList(
-			_truqu$elm_base64$Base64$toCharList(
-				_truqu$elm_base64$Base64$toTupleList(
-					_truqu$elm_base64$Base64$toCodeList(s)))));
-};
-
-var _kallaspriit$elm_basic_auth$BasicAuth$buildAuthorizationToken = F2(
-	function (username, password) {
-		var result = _truqu$elm_base64$Base64$encode(
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				username,
-				A2(_elm_lang$core$Basics_ops['++'], ':', password)));
-		var _p0 = result;
-		if (_p0.ctor === 'Ok') {
-			return _p0._0;
-		} else {
-			return A2(_elm_lang$core$Basics_ops['++'], 'error: ', _p0._0);
-		}
-	});
-var _kallaspriit$elm_basic_auth$BasicAuth$buildAuthorizationHeader = F2(
-	function (username, password) {
-		return A2(
-			_elm_lang$http$Http$header,
-			'Authorization',
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				'Basic ',
-				A2(_kallaspriit$elm_basic_auth$BasicAuth$buildAuthorizationToken, username, password)));
-	});
-
 var _user$project$GoogleMap$googleMapMarker = _elm_lang$html$Html$node('google-map-marker');
 var _user$project$GoogleMap$googleMap = _elm_lang$html$Html$node('google-map');
 
@@ -10111,19 +9759,13 @@ var _user$project$GoogleMap_Events$onIdle = function (tagger) {
 
 var _user$project$Main$extractLatLngZoom = function (model) {
 	var _p0 = model;
-	switch (_p0.ctor) {
-		case 'AwaitingMapBounds':
-			return _elm_lang$core$Maybe$Just(
-				{ctor: '_Tuple3', _0: _p0._0, _1: _p0._1, _2: _p0._2});
-		case 'AwaitingAuthentication':
-			return _elm_lang$core$Maybe$Just(
-				{ctor: '_Tuple3', _0: _p0._0.latitude, _1: _p0._0.longitude, _2: _p0._0.zoom});
-		case 'Authenticated':
-			var _p1 = _p0._0.checkPointMapState;
-			return _elm_lang$core$Maybe$Just(
-				{ctor: '_Tuple3', _0: _p1.latitude, _1: _p1.longitude, _2: _p1.zoom});
-		default:
-			return _elm_lang$core$Maybe$Nothing;
+	if (_p0.ctor === 'AwaitingMapBounds') {
+		return _elm_lang$core$Maybe$Just(
+			{ctor: '_Tuple3', _0: _p0._0, _1: _p0._1, _2: _p0._2});
+	} else {
+		var _p1 = _p0._0.checkPointMapState;
+		return _elm_lang$core$Maybe$Just(
+			{ctor: '_Tuple3', _0: _p1.latitude, _1: _p1.longitude, _2: _p1.zoom});
 	}
 };
 var _user$project$Main$defaultFilteredAssetType = 'CAMERA';
@@ -10281,9 +9923,9 @@ var _user$project$Main$CityIQAsset = F6(
 	function (a, b, c, d, e, f) {
 		return {assetUid: a, parentAssetUid: b, eventTypes: c, assetType: d, latitude: e, longitude: f};
 	});
-var _user$project$Main$AuthenticatedModel = F8(
-	function (a, b, c, d, e, f, g, h) {
-		return {accessToken: a, checkPointMapState: b, bounds: c, filteredAssetType: d, assets: e, message: f, ignoreLocationChange: g, dirty: h};
+var _user$project$Main$RunningModel = F7(
+	function (a, b, c, d, e, f, g) {
+		return {checkPointMapState: a, bounds: b, filteredAssetType: c, assets: d, message: e, ignoreLocationChange: f, dirty: g};
 	});
 var _user$project$Main$Error = function (a) {
 	return {ctor: 'Error', _0: a};
@@ -10291,14 +9933,8 @@ var _user$project$Main$Error = function (a) {
 var _user$project$Main$Info = function (a) {
 	return {ctor: 'Info', _0: a};
 };
-var _user$project$Main$Authenticated = function (a) {
-	return {ctor: 'Authenticated', _0: a};
-};
-var _user$project$Main$FailedAuthentication = function (a) {
-	return {ctor: 'FailedAuthentication', _0: a};
-};
-var _user$project$Main$AwaitingAuthentication = function (a) {
-	return {ctor: 'AwaitingAuthentication', _0: a};
+var _user$project$Main$Running = function (a) {
+	return {ctor: 'Running', _0: a};
 };
 var _user$project$Main$AwaitingMapBounds = F3(
 	function (a, b, c) {
@@ -10330,8 +9966,8 @@ var _user$project$Main$GetAssetEvent = function (a) {
 var _user$project$Main$NewAssetMetadata = function (a) {
 	return {ctor: 'NewAssetMetadata', _0: a};
 };
-var _user$project$Main$getAssetMetadataCmd = F3(
-	function (accessToken, filteredAssetType, bounds) {
+var _user$project$Main$getAssetMetadataCmd = F2(
+	function (filteredAssetType, bounds) {
 		return A2(
 			_elm_lang$http$Http$send,
 			_user$project$Main$NewAssetMetadata,
@@ -10408,15 +10044,8 @@ var _user$project$Main$getAssetMetadataCmd = F3(
 						method: 'GET',
 						headers: {
 							ctor: '::',
-							_0: A2(
-								_elm_lang$http$Http$header,
-								'Authorization',
-								A2(_elm_lang$core$Basics_ops['++'], 'Bearer ', accessToken)),
-							_1: {
-								ctor: '::',
-								_0: A2(_elm_lang$http$Http$header, 'Predix-Zone-Id', 'SD-IE-TRAFFIC'),
-								_1: {ctor: '[]'}
-							}
+							_0: A2(_elm_lang$http$Http$header, 'Predix-Zone-Id', 'SD-IE-TRAFFIC'),
+							_1: {ctor: '[]'}
 						},
 						url: url,
 						body: _elm_lang$http$Http$emptyBody,
@@ -10431,6 +10060,311 @@ var _user$project$Main$getAssetMetadataCmd = F3(
 				return request;
 			}());
 	});
+var _user$project$Main$update = F2(
+	function (msg, model) {
+		var _p6 = model;
+		if (_p6.ctor === 'AwaitingMapBounds') {
+			var _p7 = msg;
+			switch (_p7.ctor) {
+				case 'MapReady':
+					return {
+						ctor: '_Tuple2',
+						_0: model,
+						_1: _user$project$Main$initBoundsChangedListenerCmd(_p7._0.rawEvent)
+					};
+				case 'NewMapBounds':
+					var _p8 = _p7._0.bounds;
+					return {
+						ctor: '_Tuple2',
+						_0: _user$project$Main$Running(
+							{checkPointMapState: _p7._0, bounds: _p8, filteredAssetType: _user$project$Main$defaultFilteredAssetType, assets: _elm_lang$core$Dict$empty, message: _elm_lang$core$Maybe$Nothing, ignoreLocationChange: false, dirty: false}),
+						_1: A2(_user$project$Main$getAssetMetadataCmd, _user$project$Main$defaultFilteredAssetType, _p8)
+					};
+				default:
+					var _p9 = A2(
+						_elm_lang$core$Debug$log,
+						'Unexpected message/state',
+						{ctor: '_Tuple2', _0: _p7, _1: model});
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			}
+		} else {
+			var _p17 = _p6._0;
+			var _p10 = msg;
+			switch (_p10.ctor) {
+				case 'NewMapBounds':
+					return {
+						ctor: '_Tuple2',
+						_0: _user$project$Main$Running(
+							_elm_lang$core$Native_Utils.update(
+								_p17,
+								{bounds: _p10._0.bounds, dirty: true})),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'MapPannedZoomed':
+					return {
+						ctor: '_Tuple2',
+						_0: _user$project$Main$Running(
+							_elm_lang$core$Native_Utils.update(
+								_p17,
+								{ignoreLocationChange: true})),
+						_1: _elm_lang$navigation$Navigation$newUrl(
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'#',
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									_elm_lang$core$Basics$toString(_p10._0.latitude),
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										',',
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											_elm_lang$core$Basics$toString(_p10._0.longitude),
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												',',
+												_elm_lang$core$Basics$toString(_p10._0.zoom)))))))
+					};
+				case 'NewLocation':
+					if (_p17.ignoreLocationChange) {
+						return {
+							ctor: '_Tuple2',
+							_0: _user$project$Main$Running(
+								_elm_lang$core$Native_Utils.update(
+									_p17,
+									{ignoreLocationChange: false})),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					} else {
+						var _p11 = _user$project$Main$latLngZoom(_p10._0);
+						if (_p11.ctor === 'Just') {
+							var mapState = _p17.checkPointMapState;
+							return {
+								ctor: '_Tuple2',
+								_0: _user$project$Main$Running(
+									_elm_lang$core$Native_Utils.update(
+										_p17,
+										{
+											checkPointMapState: _elm_lang$core$Native_Utils.update(
+												mapState,
+												{latitude: _p11._0._0, longitude: _p11._0._1, zoom: _p11._0._2})
+										})),
+								_1: _elm_lang$core$Platform_Cmd$none
+							};
+						} else {
+							return {
+								ctor: '_Tuple2',
+								_0: model,
+								_1: _elm_lang$navigation$Navigation$modifyUrl('/')
+							};
+						}
+					}
+				case 'NewAssetTypeFilter':
+					var _p12 = _p10._0;
+					return {
+						ctor: '_Tuple2',
+						_0: _user$project$Main$Running(
+							_elm_lang$core$Native_Utils.update(
+								_p17,
+								{filteredAssetType: _p12, assets: _elm_lang$core$Dict$empty})),
+						_1: _elm_lang$core$Platform_Cmd$batch(
+							{
+								ctor: '::',
+								_0: _user$project$Main$clearGoogleMapMarkersCmd(
+									{ctor: '_Tuple0'}),
+								_1: {
+									ctor: '::',
+									_0: A2(_user$project$Main$getAssetMetadataCmd, _p12, _p17.bounds),
+									_1: {ctor: '[]'}
+								}
+							})
+					};
+				case 'GetAssetMetadata':
+					return {
+						ctor: '_Tuple2',
+						_0: model,
+						_1: A2(_user$project$Main$getAssetMetadataCmd, _p17.filteredAssetType, _p17.bounds)
+					};
+				case 'NewAssetMetadata':
+					if (_p10._0.ctor === 'Ok') {
+						var incomingAssets = A3(
+							_elm_lang$core$List$foldl,
+							F2(
+								function (asset, accum) {
+									return _elm_lang$core$Native_Utils.eq(asset.assetType, 'NODE') ? accum : A3(_elm_lang$core$Dict$insert, asset.assetUid, asset, accum);
+								}),
+							_elm_lang$core$Dict$empty,
+							_p10._0._0);
+						var allAssets = A2(_elm_lang$core$Dict$union, _p17.assets, incomingAssets);
+						var newAssets = A2(_elm_lang$core$Dict$diff, incomingAssets, _p17.assets);
+						return {
+							ctor: '_Tuple2',
+							_0: _user$project$Main$Running(
+								_elm_lang$core$Native_Utils.update(
+									_p17,
+									{assets: allAssets, dirty: false})),
+							_1: _user$project$Main$googleMapMarkersCmd(
+								_elm_lang$core$Dict$values(newAssets))
+						};
+					} else {
+						if (_p10._0._0.ctor === 'BadStatus') {
+							return {
+								ctor: '_Tuple2',
+								_0: (_elm_lang$core$Native_Utils.eq(_p10._0._0._0.status.code, 500) && A2(_elm_lang$core$String$contains, 'Assets not found ', _p10._0._0._0.body)) ? model : _user$project$Main$Running(
+									_elm_lang$core$Native_Utils.update(
+										_p17,
+										{
+											message: _elm_lang$core$Maybe$Just(
+												_user$project$Main$Error(
+													_elm_lang$core$Basics$toString(_p10._0._0)))
+										})),
+								_1: _elm_lang$core$Platform_Cmd$none
+							};
+						} else {
+							return {
+								ctor: '_Tuple2',
+								_0: _user$project$Main$Running(
+									_elm_lang$core$Native_Utils.update(
+										_p17,
+										{
+											message: _elm_lang$core$Maybe$Just(
+												_user$project$Main$Error(
+													_elm_lang$core$Basics$toString(_p10._0._0)))
+										})),
+								_1: _elm_lang$core$Platform_Cmd$none
+							};
+						}
+					}
+				case 'GetAssetEvent':
+					var _p14 = _p10._0.eventType;
+					return {
+						ctor: '_Tuple2',
+						_0: model,
+						_1: A2(
+							_elm_lang$http$Http$send,
+							_user$project$Main$NewAssetEvent,
+							function () {
+								var predixZoneId = function () {
+									var _p13 = _p14;
+									switch (_p13) {
+										case 'PKIN':
+											return 'SD-IE-PARKING';
+										case 'PKOUT':
+											return 'SD-IE-PARKING';
+										case 'TFEVT':
+											return 'SD-IE-TRAFFIC';
+										case 'BICYCLE':
+											return 'SD-IE-BICYCLE';
+										case 'PEDEVT':
+											return 'SD-IE-PEDESTRIAN';
+										case 'PRESSURE':
+											return 'SD-IE-ENVIRONMENTAL';
+										case 'TEMPERATURE':
+											return 'SD-IE-ENVIRONMENTAL';
+										case 'ORIENTATION':
+											return 'SD-IE-ENVIRONMENTAL';
+										case 'HUMIDITY':
+											return 'SD-IE-ENVIRONMENTAL';
+										case 'METROLOGY':
+											return 'SD-IE-METROLOGY';
+										case 'ENERGY_ALERT':
+											return 'SD-IE-METROLOGY';
+										case 'ENERGY_TIMESERIES':
+											return 'SD-IE-METROLOGY';
+										default:
+											return 'UNKNOWN';
+									}
+								}();
+								var url = A2(
+									_elm_lang$core$Basics_ops['++'],
+									'/proxy/https://sandiego.cityiq.io/api/v2/event/assets/',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										_p10._0.assetUid,
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											'/events?eventType=',
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												_p14,
+												A2(
+													_elm_lang$core$Basics_ops['++'],
+													'&startTime=',
+													A2(
+														_elm_lang$core$Basics_ops['++'],
+														_elm_lang$core$Basics$toString(_p10._0.startTime),
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															'&endTime=',
+															A2(
+																_elm_lang$core$Basics_ops['++'],
+																_elm_lang$core$Basics$toString(_p10._0.endTime),
+																'&pageSize=100'))))))));
+								var request = _elm_lang$http$Http$request(
+									{
+										method: 'GET',
+										headers: {
+											ctor: '::',
+											_0: A2(_elm_lang$http$Http$header, 'Predix-Zone-Id', predixZoneId),
+											_1: {ctor: '[]'}
+										},
+										url: url,
+										body: _elm_lang$http$Http$emptyBody,
+										expect: _elm_lang$http$Http$expectJson(_elm_lang$core$Json_Decode$value),
+										timeout: _elm_lang$core$Maybe$Nothing,
+										withCredentials: false
+									});
+								return request;
+							}())
+					};
+				case 'NewAssetEvent':
+					if (_p10._0.ctor === 'Ok') {
+						return {
+							ctor: '_Tuple2',
+							_0: _user$project$Main$Running(
+								_elm_lang$core$Native_Utils.update(
+									_p17,
+									{
+										message: _elm_lang$core$Maybe$Just(
+											_user$project$Main$Info(
+												A2(_elm_lang$core$Json_Encode$encode, 2, _p10._0._0)))
+									})),
+							_1: A2(
+								_elm_lang$core$Task$attempt,
+								_elm_lang$core$Basics$always(_user$project$Main$NoOp),
+								_elm_lang$dom$Dom_Scroll$toBottom('console'))
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: _user$project$Main$Running(
+								_elm_lang$core$Native_Utils.update(
+									_p17,
+									{
+										message: _elm_lang$core$Maybe$Just(
+											_user$project$Main$Error(
+												_elm_lang$core$Basics$toString(_p10._0._0)))
+									})),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					}
+				case 'NoOp':
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				case 'MapReady':
+					var _p15 = A2(
+						_elm_lang$core$Debug$log,
+						'Unexpected message/state',
+						{ctor: '_Tuple2', _0: _p10, _1: model});
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				default:
+					var _p16 = A2(
+						_elm_lang$core$Debug$log,
+						'Unexpected message/state',
+						{ctor: '_Tuple2', _0: _p10, _1: model});
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			}
+		}
+	});
 var _user$project$Main$GetAssetMetadata = {ctor: 'GetAssetMetadata'};
 var _user$project$Main$NewAssetTypeFilter = function (a) {
 	return {ctor: 'NewAssetTypeFilter', _0: a};
@@ -10441,378 +10375,6 @@ var _user$project$Main$NewLocation = function (a) {
 var _user$project$Main$NewAccessToken = function (a) {
 	return {ctor: 'NewAccessToken', _0: a};
 };
-var _user$project$Main$update = F2(
-	function (msg, model) {
-		var _p6 = model;
-		switch (_p6.ctor) {
-			case 'AwaitingMapBounds':
-				var _p7 = msg;
-				switch (_p7.ctor) {
-					case 'MapReady':
-						return {
-							ctor: '_Tuple2',
-							_0: model,
-							_1: _user$project$Main$initBoundsChangedListenerCmd(_p7._0.rawEvent)
-						};
-					case 'NewMapBounds':
-						return {
-							ctor: '_Tuple2',
-							_0: _user$project$Main$AwaitingAuthentication(_p7._0),
-							_1: A2(
-								_elm_lang$http$Http$send,
-								_user$project$Main$NewAccessToken,
-								function () {
-									var accessTokenDecoder = A2(_elm_lang$core$Json_Decode$field, 'access_token', _elm_lang$core$Json_Decode$string);
-									var request = _elm_lang$http$Http$request(
-										{
-											method: 'GET',
-											headers: {
-												ctor: '::',
-												_0: A2(_kallaspriit$elm_basic_auth$BasicAuth$buildAuthorizationHeader, 'PublicAccess', 'qPKIadEsoHjyh226Snz7'),
-												_1: {ctor: '[]'}
-											},
-											url: 'https://auth.aa.cityiq.io/oauth/token?grant_type=client_credentials',
-											body: _elm_lang$http$Http$emptyBody,
-											expect: _elm_lang$http$Http$expectJson(accessTokenDecoder),
-											timeout: _elm_lang$core$Maybe$Nothing,
-											withCredentials: false
-										});
-									return request;
-								}())
-						};
-					default:
-						var _p8 = A2(
-							_elm_lang$core$Debug$log,
-							'Unexpected message/state',
-							{ctor: '_Tuple2', _0: _p7, _1: model});
-						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				}
-			case 'AwaitingAuthentication':
-				var _p12 = _p6._0.bounds;
-				var _p9 = msg;
-				switch (_p9.ctor) {
-					case 'NewAccessToken':
-						if (_p9._0.ctor === 'Ok') {
-							var _p10 = _p9._0._0;
-							return {
-								ctor: '_Tuple2',
-								_0: _user$project$Main$Authenticated(
-									{accessToken: _p10, checkPointMapState: _p6._0, bounds: _p12, filteredAssetType: _user$project$Main$defaultFilteredAssetType, assets: _elm_lang$core$Dict$empty, message: _elm_lang$core$Maybe$Nothing, ignoreLocationChange: false, dirty: false}),
-								_1: A3(_user$project$Main$getAssetMetadataCmd, _p10, _user$project$Main$defaultFilteredAssetType, _p12)
-							};
-						} else {
-							return {
-								ctor: '_Tuple2',
-								_0: _user$project$Main$FailedAuthentication(
-									_elm_lang$core$Basics$toString(_p9._0._0)),
-								_1: _elm_lang$core$Platform_Cmd$none
-							};
-						}
-					case 'NewMapBounds':
-						return {
-							ctor: '_Tuple2',
-							_0: _user$project$Main$AwaitingAuthentication(_p9._0),
-							_1: _elm_lang$core$Platform_Cmd$none
-						};
-					default:
-						var _p11 = A2(
-							_elm_lang$core$Debug$log,
-							'Unexpected message/state',
-							{ctor: '_Tuple2', _0: _p9, _1: model});
-						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				}
-			case 'Authenticated':
-				var _p20 = _p6._0;
-				var _p13 = msg;
-				switch (_p13.ctor) {
-					case 'NewMapBounds':
-						return {
-							ctor: '_Tuple2',
-							_0: _user$project$Main$Authenticated(
-								_elm_lang$core$Native_Utils.update(
-									_p20,
-									{bounds: _p13._0.bounds, dirty: true})),
-							_1: _elm_lang$core$Platform_Cmd$none
-						};
-					case 'MapPannedZoomed':
-						return {
-							ctor: '_Tuple2',
-							_0: _user$project$Main$Authenticated(
-								_elm_lang$core$Native_Utils.update(
-									_p20,
-									{ignoreLocationChange: true})),
-							_1: _elm_lang$navigation$Navigation$newUrl(
-								A2(
-									_elm_lang$core$Basics_ops['++'],
-									'#',
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										_elm_lang$core$Basics$toString(_p13._0.latitude),
-										A2(
-											_elm_lang$core$Basics_ops['++'],
-											',',
-											A2(
-												_elm_lang$core$Basics_ops['++'],
-												_elm_lang$core$Basics$toString(_p13._0.longitude),
-												A2(
-													_elm_lang$core$Basics_ops['++'],
-													',',
-													_elm_lang$core$Basics$toString(_p13._0.zoom)))))))
-						};
-					case 'NewLocation':
-						if (_p20.ignoreLocationChange) {
-							return {
-								ctor: '_Tuple2',
-								_0: _user$project$Main$Authenticated(
-									_elm_lang$core$Native_Utils.update(
-										_p20,
-										{ignoreLocationChange: false})),
-								_1: _elm_lang$core$Platform_Cmd$none
-							};
-						} else {
-							var _p14 = _user$project$Main$latLngZoom(_p13._0);
-							if (_p14.ctor === 'Just') {
-								var mapState = _p20.checkPointMapState;
-								return {
-									ctor: '_Tuple2',
-									_0: _user$project$Main$Authenticated(
-										_elm_lang$core$Native_Utils.update(
-											_p20,
-											{
-												checkPointMapState: _elm_lang$core$Native_Utils.update(
-													mapState,
-													{latitude: _p14._0._0, longitude: _p14._0._1, zoom: _p14._0._2})
-											})),
-									_1: _elm_lang$core$Platform_Cmd$none
-								};
-							} else {
-								return {
-									ctor: '_Tuple2',
-									_0: model,
-									_1: _elm_lang$navigation$Navigation$modifyUrl('/')
-								};
-							}
-						}
-					case 'NewAssetTypeFilter':
-						var _p15 = _p13._0;
-						return {
-							ctor: '_Tuple2',
-							_0: _user$project$Main$Authenticated(
-								_elm_lang$core$Native_Utils.update(
-									_p20,
-									{filteredAssetType: _p15, assets: _elm_lang$core$Dict$empty})),
-							_1: _elm_lang$core$Platform_Cmd$batch(
-								{
-									ctor: '::',
-									_0: _user$project$Main$clearGoogleMapMarkersCmd(
-										{ctor: '_Tuple0'}),
-									_1: {
-										ctor: '::',
-										_0: A3(_user$project$Main$getAssetMetadataCmd, _p20.accessToken, _p15, _p20.bounds),
-										_1: {ctor: '[]'}
-									}
-								})
-						};
-					case 'GetAssetMetadata':
-						return {
-							ctor: '_Tuple2',
-							_0: model,
-							_1: A3(_user$project$Main$getAssetMetadataCmd, _p20.accessToken, _p20.filteredAssetType, _p20.bounds)
-						};
-					case 'NewAssetMetadata':
-						if (_p13._0.ctor === 'Ok') {
-							var incomingAssets = A3(
-								_elm_lang$core$List$foldl,
-								F2(
-									function (asset, accum) {
-										return _elm_lang$core$Native_Utils.eq(asset.assetType, 'NODE') ? accum : A3(_elm_lang$core$Dict$insert, asset.assetUid, asset, accum);
-									}),
-								_elm_lang$core$Dict$empty,
-								_p13._0._0);
-							var allAssets = A2(_elm_lang$core$Dict$union, _p20.assets, incomingAssets);
-							var newAssets = A2(_elm_lang$core$Dict$diff, incomingAssets, _p20.assets);
-							return {
-								ctor: '_Tuple2',
-								_0: _user$project$Main$Authenticated(
-									_elm_lang$core$Native_Utils.update(
-										_p20,
-										{assets: allAssets, dirty: false})),
-								_1: _user$project$Main$googleMapMarkersCmd(
-									_elm_lang$core$Dict$values(newAssets))
-							};
-						} else {
-							if (_p13._0._0.ctor === 'BadStatus') {
-								return {
-									ctor: '_Tuple2',
-									_0: (_elm_lang$core$Native_Utils.eq(_p13._0._0._0.status.code, 500) && A2(_elm_lang$core$String$contains, 'Assets not found ', _p13._0._0._0.body)) ? model : _user$project$Main$Authenticated(
-										_elm_lang$core$Native_Utils.update(
-											_p20,
-											{
-												message: _elm_lang$core$Maybe$Just(
-													_user$project$Main$Error(
-														_elm_lang$core$Basics$toString(_p13._0._0)))
-											})),
-									_1: _elm_lang$core$Platform_Cmd$none
-								};
-							} else {
-								return {
-									ctor: '_Tuple2',
-									_0: _user$project$Main$Authenticated(
-										_elm_lang$core$Native_Utils.update(
-											_p20,
-											{
-												message: _elm_lang$core$Maybe$Just(
-													_user$project$Main$Error(
-														_elm_lang$core$Basics$toString(_p13._0._0)))
-											})),
-									_1: _elm_lang$core$Platform_Cmd$none
-								};
-							}
-						}
-					case 'GetAssetEvent':
-						var _p17 = _p13._0.eventType;
-						return {
-							ctor: '_Tuple2',
-							_0: model,
-							_1: A2(
-								_elm_lang$http$Http$send,
-								_user$project$Main$NewAssetEvent,
-								function () {
-									var predixZoneId = function () {
-										var _p16 = _p17;
-										switch (_p16) {
-											case 'PKIN':
-												return 'SD-IE-PARKING';
-											case 'PKOUT':
-												return 'SD-IE-PARKING';
-											case 'TFEVT':
-												return 'SD-IE-TRAFFIC';
-											case 'BICYCLE':
-												return 'SD-IE-BICYCLE';
-											case 'PEDEVT':
-												return 'SD-IE-PEDESTRIAN';
-											case 'PRESSURE':
-												return 'SD-IE-ENVIRONMENTAL';
-											case 'TEMPERATURE':
-												return 'SD-IE-ENVIRONMENTAL';
-											case 'ORIENTATION':
-												return 'SD-IE-ENVIRONMENTAL';
-											case 'HUMIDITY':
-												return 'SD-IE-ENVIRONMENTAL';
-											case 'METROLOGY':
-												return 'SD-IE-METROLOGY';
-											case 'ENERGY_ALERT':
-												return 'SD-IE-METROLOGY';
-											case 'ENERGY_TIMESERIES':
-												return 'SD-IE-METROLOGY';
-											default:
-												return 'UNKNOWN';
-										}
-									}();
-									var url = A2(
-										_elm_lang$core$Basics_ops['++'],
-										'/proxy/https://sandiego.cityiq.io/api/v2/event/assets/',
-										A2(
-											_elm_lang$core$Basics_ops['++'],
-											_p13._0.assetUid,
-											A2(
-												_elm_lang$core$Basics_ops['++'],
-												'/events?eventType=',
-												A2(
-													_elm_lang$core$Basics_ops['++'],
-													_p17,
-													A2(
-														_elm_lang$core$Basics_ops['++'],
-														'&startTime=',
-														A2(
-															_elm_lang$core$Basics_ops['++'],
-															_elm_lang$core$Basics$toString(_p13._0.startTime),
-															A2(
-																_elm_lang$core$Basics_ops['++'],
-																'&endTime=',
-																A2(
-																	_elm_lang$core$Basics_ops['++'],
-																	_elm_lang$core$Basics$toString(_p13._0.endTime),
-																	'&pageSize=100'))))))));
-									var request = _elm_lang$http$Http$request(
-										{
-											method: 'GET',
-											headers: {
-												ctor: '::',
-												_0: A2(
-													_elm_lang$http$Http$header,
-													'Authorization',
-													A2(_elm_lang$core$Basics_ops['++'], 'Bearer ', _p20.accessToken)),
-												_1: {
-													ctor: '::',
-													_0: A2(_elm_lang$http$Http$header, 'Predix-Zone-Id', predixZoneId),
-													_1: {ctor: '[]'}
-												}
-											},
-											url: url,
-											body: _elm_lang$http$Http$emptyBody,
-											expect: _elm_lang$http$Http$expectJson(_elm_lang$core$Json_Decode$value),
-											timeout: _elm_lang$core$Maybe$Nothing,
-											withCredentials: false
-										});
-									return request;
-								}())
-						};
-					case 'NewAssetEvent':
-						if (_p13._0.ctor === 'Ok') {
-							return {
-								ctor: '_Tuple2',
-								_0: _user$project$Main$Authenticated(
-									_elm_lang$core$Native_Utils.update(
-										_p20,
-										{
-											message: _elm_lang$core$Maybe$Just(
-												_user$project$Main$Info(
-													A2(_elm_lang$core$Json_Encode$encode, 2, _p13._0._0)))
-										})),
-								_1: A2(
-									_elm_lang$core$Task$attempt,
-									_elm_lang$core$Basics$always(_user$project$Main$NoOp),
-									_elm_lang$dom$Dom_Scroll$toBottom('console'))
-							};
-						} else {
-							return {
-								ctor: '_Tuple2',
-								_0: _user$project$Main$Authenticated(
-									_elm_lang$core$Native_Utils.update(
-										_p20,
-										{
-											message: _elm_lang$core$Maybe$Just(
-												_user$project$Main$Error(
-													_elm_lang$core$Basics$toString(_p13._0._0)))
-										})),
-								_1: _elm_lang$core$Platform_Cmd$none
-							};
-						}
-					case 'NoOp':
-						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-					case 'MapReady':
-						var _p18 = A2(
-							_elm_lang$core$Debug$log,
-							'Unexpected message/state',
-							{ctor: '_Tuple2', _0: _p13, _1: model});
-						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-					default:
-						var _p19 = A2(
-							_elm_lang$core$Debug$log,
-							'Unexpected message/state',
-							{ctor: '_Tuple2', _0: _p13, _1: model});
-						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				}
-			default:
-				var _p21 = msg;
-				var _p22 = A2(
-					_elm_lang$core$Debug$log,
-					'Unexpected message/state',
-					{ctor: '_Tuple2', _0: _p21, _1: model});
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-		}
-	});
 var _user$project$Main$NewMapBounds = function (a) {
 	return {ctor: 'NewMapBounds', _0: a};
 };
@@ -10827,9 +10389,9 @@ var _user$project$Main$subscriptions = function (model) {
 				_1: {
 					ctor: '::',
 					_0: function () {
-						var _p23 = model;
-						if (_p23.ctor === 'Authenticated') {
-							return (!_p23._0.dirty) ? _elm_lang$core$Platform_Sub$none : A2(
+						var _p18 = model;
+						if (_p18.ctor === 'Running') {
+							return (!_p18._0.dirty) ? _elm_lang$core$Platform_Sub$none : A2(
 								_elm_lang$core$Time$every,
 								500 * _elm_lang$core$Time$millisecond,
 								_elm_lang$core$Basics$always(_user$project$Main$GetAssetMetadata));
@@ -10876,17 +10438,17 @@ var _user$project$Main$view = function (model) {
 									ctor: '::',
 									_0: _user$project$GoogleMap_Events$onZoomChanged(_user$project$Main$MapPannedZoomed),
 									_1: function () {
-										var _p24 = _user$project$Main$extractLatLngZoom(model);
-										if (_p24.ctor === 'Just') {
+										var _p19 = _user$project$Main$extractLatLngZoom(model);
+										if (_p19.ctor === 'Just') {
 											return {
 												ctor: '::',
-												_0: _user$project$GoogleMap_Attributes$latitude(_p24._0._0),
+												_0: _user$project$GoogleMap_Attributes$latitude(_p19._0._0),
 												_1: {
 													ctor: '::',
-													_0: _user$project$GoogleMap_Attributes$longitude(_p24._0._1),
+													_0: _user$project$GoogleMap_Attributes$longitude(_p19._0._1),
 													_1: {
 														ctor: '::',
-														_0: _user$project$GoogleMap_Attributes$zoom(_p24._0._2),
+														_0: _user$project$GoogleMap_Attributes$zoom(_p19._0._2),
 														_1: {ctor: '[]'}
 													}
 												}
@@ -10933,16 +10495,16 @@ var _user$project$Main$view = function (model) {
 				ctor: '::',
 				_0: function () {
 					var assetType = function () {
-						var _p25 = model;
-						if (_p25.ctor === 'Authenticated') {
-							return _p25._0.filteredAssetType;
+						var _p20 = model;
+						if (_p20.ctor === 'Running') {
+							return _p20._0.filteredAssetType;
 						} else {
 							return _user$project$Main$defaultFilteredAssetType;
 						}
 					}();
 					var enabled = function () {
-						var _p26 = model;
-						if (_p26.ctor === 'Authenticated') {
+						var _p21 = model;
+						if (_p21.ctor === 'Running') {
 							return true;
 						} else {
 							return false;
@@ -11055,89 +10617,57 @@ var _user$project$Main$view = function (model) {
 							_1: {ctor: '[]'}
 						},
 						function () {
-							var _p27 = model;
-							switch (_p27.ctor) {
-								case 'Authenticated':
-									var _p28 = _p27._0.message;
-									if (_p28.ctor === 'Just') {
-										if (_p28._0.ctor === 'Info') {
-											return {
-												ctor: '::',
-												_0: A2(
-													_elm_lang$html$Html$pre,
-													{ctor: '[]'},
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html$text(_p28._0._0),
-														_1: {ctor: '[]'}
-													}),
-												_1: {ctor: '[]'}
-											};
-										} else {
-											return {
-												ctor: '::',
-												_0: A2(
-													_elm_lang$html$Html$pre,
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html_Attributes$class('stderr'),
-														_1: {ctor: '[]'}
-													},
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html$text(_p28._0._0),
-														_1: {ctor: '[]'}
-													}),
-												_1: {ctor: '[]'}
-											};
-										}
+							var _p22 = model;
+							if (_p22.ctor === 'Running') {
+								var _p23 = _p22._0.message;
+								if (_p23.ctor === 'Just') {
+									if (_p23._0.ctor === 'Info') {
+										return {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$pre,
+												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text(_p23._0._0),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										};
 									} else {
-										return {ctor: '[]'};
+										return {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$pre,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$class('stderr'),
+													_1: {ctor: '[]'}
+												},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text(_p23._0._0),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										};
 									}
-								case 'AwaitingMapBounds':
-									return {
-										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html$pre,
-											{ctor: '[]'},
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html$text('Awaiting map bounds...'),
-												_1: {ctor: '[]'}
-											}),
-										_1: {ctor: '[]'}
-									};
-								case 'AwaitingAuthentication':
-									return {
-										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html$pre,
-											{ctor: '[]'},
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html$text('Awaiting authentication...'),
-												_1: {ctor: '[]'}
-											}),
-										_1: {ctor: '[]'}
-									};
-								default:
-									return {
-										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html$pre,
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html_Attributes$class('stderr '),
-												_1: {ctor: '[]'}
-											},
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html$text(
-													A2(_elm_lang$core$Basics_ops['++'], 'Failed to obtain access token: ', _p27._0)),
-												_1: {ctor: '[]'}
-											}),
-										_1: {ctor: '[]'}
-									};
+								} else {
+									return {ctor: '[]'};
+								}
+							} else {
+								return {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$pre,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Awaiting map bounds...'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								};
 							}
 						}()),
 					_1: {ctor: '[]'}

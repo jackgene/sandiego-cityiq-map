@@ -1,13 +1,22 @@
 package controllers
 
-import javax.inject.{Inject, Singleton}
+import actors.CityIQAuthenticatingProxy
+import akka.actor.ActorRef
+import akka.pattern.ask
+import akka.util.Timeout
+import javax.inject.{Inject, Named, Singleton}
 import play.api.libs.ws.{WSClient, WSResponse}
 import play.api.mvc.{Action, _}
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 @Singleton
-class Application @Inject()(ws: WSClient, cc: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(cc) {
+class Application @Inject()
+    (@Named("cityiq-auth-proxy") cityIqAuthProxy: ActorRef, ws: WSClient, cc: ControllerComponents)
+    (implicit ec: ExecutionContext)
+    extends AbstractController(cc) {
+  private implicit val AskTimeout: Timeout = 30.seconds
 
   def index: Action[AnyContent] = Action {
     Ok(views.html.index())
@@ -17,28 +26,23 @@ class Application @Inject()(ws: WSClient, cc: ControllerComponents)(implicit ec:
     val proxiedHeaders: Seq[(String,String)] =
       request.headers.toSimpleMap.
       filter {
-        case (key: String, _: String) =>
-          !Set(
-            "Cookie", "Host", "Raw-Request-URI", "Referer",
-            "Timeout-Access", "Tls-Session-Info", "User-Agent"
-          ).contains(key)
+        case (key: String, _: String) => key == "Predix-Zone-Id"
       }.
       toSeq
-    ws.
-      url(s"${url}?${request.rawQueryString}").
-      withHttpHeaders(proxiedHeaders: _*).
-      stream().
-      map { response: WSResponse =>
-        val contentType = response.headers.get("Content-Type").flatMap(_.headOption)
-          .getOrElse("application/octet-stream")
-        val result = Status(response.status)
-
-        response.headers.get("Content-Length") match {
-          case Some(List(length)) =>
-            result(response.body).as(contentType).withHeaders("Content-Length" -> length)
-          case _ =>
-            result.chunked(response.bodyAsSource).as(contentType)
+    (
+      cityIqAuthProxy ? CityIQAuthenticatingProxy.ProxiedRequest(
+        ws.url(s"${url}?${request.rawQueryString}").withHttpHeaders(proxiedHeaders: _*)
+      )
+    ).
+    map {
+      case response: WSResponse =>
+        val contentType: Option[String] =
+          response.headers.get("Content-Type").flatMap(_.headOption)
+        val result: Result = Status(response.status)(response.body)
+        contentType match {
+          case Some(contentType: String) => result.as(contentType)
+          case None => result
         }
-      }
+    }
   }
 }

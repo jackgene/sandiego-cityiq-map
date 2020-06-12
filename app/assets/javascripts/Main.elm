@@ -1,6 +1,5 @@
 port module Main exposing (..)
 
-import BasicAuth
 import Dict exposing (Dict)
 import Dom.Scroll
 import GoogleMap exposing (googleMap)
@@ -72,9 +71,8 @@ type ConsoleMessage
     | Error String
 
 
-type alias AuthenticatedModel =
-    { accessToken : String
-    , checkPointMapState : MapState
+type alias RunningModel =
+    { checkPointMapState : MapState
     , bounds : Bounds
     , filteredAssetType : String
     , assets : Dict String CityIQAsset
@@ -86,9 +84,7 @@ type alias AuthenticatedModel =
 
 type Model
     = AwaitingMapBounds Float Float Int
-    | AwaitingAuthentication MapState
-    | FailedAuthentication String
-    | Authenticated AuthenticatedModel
+    | Running RunningModel
 
 
 type Msg
@@ -136,8 +132,8 @@ init location =
             )
 
 
-getAssetMetadataCmd : String -> String -> Bounds -> Cmd Msg
-getAssetMetadataCmd accessToken filteredAssetType bounds =
+getAssetMetadataCmd : String -> Bounds -> Cmd Msg
+getAssetMetadataCmd filteredAssetType bounds =
     Http.send NewAssetMetadata
         (let
             url : String
@@ -188,8 +184,7 @@ getAssetMetadataCmd accessToken filteredAssetType bounds =
                 Http.request
                     { method = "GET"
                     , headers =
-                        [ Http.header "Authorization" ("Bearer " ++ accessToken)
-                        , Http.header "Predix-Zone-Id" "SD-IE-TRAFFIC"
+                        [ Http.header "Predix-Zone-Id" "SD-IE-TRAFFIC"
                         ]
                     , url = url
                     , body = Http.emptyBody
@@ -221,43 +216,9 @@ update msg model =
                     , initBoundsChangedListenerCmd event.rawEvent
                     )
 
-                NewMapBounds mapState ->
-                    ( AwaitingAuthentication mapState
-                    , Http.send NewAccessToken
-                        (let
-                            accessTokenDecoder : Decode.Decoder String
-                            accessTokenDecoder =
-                                Decode.field "access_token" Decode.string
-
-                            request : Http.Request String
-                            request =
-                                Http.request
-                                    { method = "GET"
-                                    , headers = [ BasicAuth.buildAuthorizationHeader "PublicAccess" "qPKIadEsoHjyh226Snz7" ]
-                                    , url = "https://auth.aa.cityiq.io/oauth/token?grant_type=client_credentials"
-                                    , body = Http.emptyBody
-                                    , expect = Http.expectJson accessTokenDecoder
-                                    , timeout = Nothing
-                                    , withCredentials = False
-                                    }
-                         in
-                         request
-                        )
-                    )
-
-                unexpected ->
-                    let
-                        _ =
-                            Debug.log "Unexpected message/state" ( unexpected, model )
-                    in
-                    ( model, Cmd.none )
-
-        AwaitingAuthentication ({ bounds } as mapState) ->
-            case msg of
-                NewAccessToken (Ok accessToken) ->
-                    ( Authenticated
-                        { accessToken = accessToken
-                        , checkPointMapState = mapState
+                NewMapBounds ({ bounds } as mapState) ->
+                    ( Running
+                        { checkPointMapState = mapState
                         , bounds = bounds
                         , filteredAssetType = defaultFilteredAssetType
                         , assets = Dict.empty
@@ -265,17 +226,7 @@ update msg model =
                         , ignoreLocationChange = False
                         , dirty = False
                         }
-                    , getAssetMetadataCmd accessToken defaultFilteredAssetType bounds
-                    )
-
-                NewAccessToken (Err err) ->
-                    ( FailedAuthentication (toString err)
-                    , Cmd.none
-                    )
-
-                NewMapBounds mapState ->
-                    ( AwaitingAuthentication mapState
-                    , Cmd.none
+                    , getAssetMetadataCmd defaultFilteredAssetType bounds
                     )
 
                 unexpected ->
@@ -285,21 +236,21 @@ update msg model =
                     in
                     ( model, Cmd.none )
 
-        Authenticated authModel ->
+        Running runningModel ->
             case msg of
                 NewMapBounds { latitude, longitude, zoom, bounds } ->
-                    ( Authenticated { authModel | bounds = bounds, dirty = True }
+                    ( Running { runningModel | bounds = bounds, dirty = True }
                     , Cmd.none
                     )
 
                 MapPannedZoomed { latitude, longitude, zoom } ->
-                    ( Authenticated { authModel | ignoreLocationChange = True }
+                    ( Running { runningModel | ignoreLocationChange = True }
                     , Navigation.newUrl ("#" ++ toString latitude ++ "," ++ toString longitude ++ "," ++ toString zoom)
                     )
 
                 NewLocation location ->
-                    if authModel.ignoreLocationChange then
-                        ( Authenticated { authModel | ignoreLocationChange = False }
+                    if runningModel.ignoreLocationChange then
+                        ( Running { runningModel | ignoreLocationChange = False }
                         , Cmd.none
                         )
 
@@ -309,10 +260,10 @@ update msg model =
                                 let
                                     mapState : MapState
                                     mapState =
-                                        authModel.checkPointMapState
+                                        runningModel.checkPointMapState
                                 in
-                                ( Authenticated
-                                    { authModel
+                                ( Running
+                                    { runningModel
                                         | checkPointMapState =
                                             { mapState | latitude = lat, longitude = lng, zoom = zoom }
                                     }
@@ -325,16 +276,16 @@ update msg model =
                                 )
 
                 NewAssetTypeFilter assetType ->
-                    ( Authenticated { authModel | filteredAssetType = assetType, assets = Dict.empty }
+                    ( Running { runningModel | filteredAssetType = assetType, assets = Dict.empty }
                     , Cmd.batch
                         [ clearGoogleMapMarkersCmd ()
-                        , getAssetMetadataCmd authModel.accessToken assetType authModel.bounds
+                        , getAssetMetadataCmd assetType runningModel.bounds
                         ]
                     )
 
                 GetAssetMetadata ->
                     ( model
-                    , getAssetMetadataCmd authModel.accessToken authModel.filteredAssetType authModel.bounds
+                    , getAssetMetadataCmd runningModel.filteredAssetType runningModel.bounds
                     )
 
                 NewAssetMetadata (Ok assets) ->
@@ -355,13 +306,13 @@ update msg model =
 
                         allAssets : Dict String CityIQAsset
                         allAssets =
-                            Dict.union authModel.assets incomingAssets
+                            Dict.union runningModel.assets incomingAssets
 
                         newAssets : Dict String CityIQAsset
                         newAssets =
-                            Dict.diff incomingAssets authModel.assets
+                            Dict.diff incomingAssets runningModel.assets
                     in
-                    ( Authenticated { authModel | assets = allAssets, dirty = False }
+                    ( Running { runningModel | assets = allAssets, dirty = False }
                     , googleMapMarkersCmd (Dict.values newAssets)
                     )
 
@@ -371,12 +322,12 @@ update msg model =
                         model
 
                       else
-                        Authenticated { authModel | message = Just (Error (toString err)) }
+                        Running { runningModel | message = Just (Error (toString err)) }
                     , Cmd.none
                     )
 
                 NewAssetMetadata (Err err) ->
-                    ( Authenticated { authModel | message = Just (Error (toString err)) }
+                    ( Running { runningModel | message = Just (Error (toString err)) }
                     , Cmd.none
                     )
 
@@ -443,8 +394,7 @@ update msg model =
                                 Http.request
                                     { method = "GET"
                                     , headers =
-                                        [ Http.header "Authorization" ("Bearer " ++ authModel.accessToken)
-                                        , Http.header "Predix-Zone-Id" predixZoneId
+                                        [ Http.header "Predix-Zone-Id" predixZoneId
                                         ]
                                     , url = url
                                     , body = Http.emptyBody
@@ -458,12 +408,12 @@ update msg model =
                     )
 
                 NewAssetEvent (Ok jsonValue) ->
-                    ( Authenticated { authModel | message = Just (Info (Encode.encode 2 jsonValue)) }
+                    ( Running { runningModel | message = Just (Info (Encode.encode 2 jsonValue)) }
                     , Task.attempt (always NoOp) (Dom.Scroll.toBottom "console")
                     )
 
                 NewAssetEvent (Err err) ->
-                    ( Authenticated { authModel | message = Just (Error (toString err)) }
+                    ( Running { runningModel | message = Just (Error (toString err)) }
                     , Cmd.none
                     )
 
@@ -484,15 +434,6 @@ update msg model =
                     in
                     ( model, Cmd.none )
 
-        FailedAuthentication _ ->
-            case msg of
-                unexpected ->
-                    let
-                        _ =
-                            Debug.log "Unexpected message/state" ( unexpected, model )
-                    in
-                    ( model, Cmd.none )
-
 
 port boundsChangedSub : (MapState -> msg) -> Sub msg
 
@@ -506,7 +447,7 @@ subscriptions model =
         [ boundsChangedSub NewMapBounds
         , getAssetEventsSub GetAssetEvent
         , case model of
-            Authenticated { dirty } ->
+            Running { dirty } ->
                 if not dirty then
                     Sub.none
 
@@ -524,14 +465,8 @@ extractLatLngZoom model =
         AwaitingMapBounds lat lng zm ->
             Just ( lat, lng, zm )
 
-        AwaitingAuthentication { latitude, longitude, zoom } ->
-            Just ( latitude, longitude, zoom )
-
-        Authenticated { checkPointMapState } ->
+        Running { checkPointMapState } ->
             Just ( checkPointMapState.latitude, checkPointMapState.longitude, checkPointMapState.zoom )
-
-        _ ->
-            Nothing
 
 
 view : Model -> Html Msg
@@ -563,7 +498,7 @@ view model =
             enabled : Bool
             enabled =
                 case model of
-                    Authenticated _ ->
+                    Running _ ->
                         True
 
                     _ ->
@@ -572,7 +507,7 @@ view model =
             assetType : String
             assetType =
                 case model of
-                    Authenticated { filteredAssetType } ->
+                    Running { filteredAssetType } ->
                         filteredAssetType
 
                     _ ->
@@ -598,7 +533,7 @@ view model =
             ]
         , div [ id "console" ]
             (case model of
-                Authenticated { message } ->
+                Running { message } ->
                     case message of
                         Just (Info msg) ->
                             [ pre [] [ text msg ] ]
@@ -611,12 +546,6 @@ view model =
 
                 AwaitingMapBounds _ _ _ ->
                     [ pre [] [ text "Awaiting map bounds..." ] ]
-
-                AwaitingAuthentication _ ->
-                    [ pre [] [ text "Awaiting authentication..." ] ]
-
-                FailedAuthentication errorMsg ->
-                    [ pre [ class "stderr " ] [ text ("Failed to obtain access token: " ++ errorMsg) ] ]
             )
         ]
 
