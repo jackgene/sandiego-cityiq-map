@@ -3,12 +3,13 @@ package actors
 import akka.actor.{Actor, ActorLogging, Stash}
 import akka.pattern.pipe
 import javax.inject.Inject
+import play.api.http.Status
 import play.api.libs.json.JsValue
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSRequest, WSResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object CityIQAuthenticatingProxy {
+object CityIQAuthenticatingProxyActor {
   private val TokenUrl = "https://auth.aa.cityiq.io/oauth/token?grant_type=client_credentials"
   // TODO Make configurable, or scrape from
   // https://www.sandiego.gov/sustainability/energy-and-water-efficiency/programs-projects/smart-city
@@ -17,11 +18,11 @@ object CityIQAuthenticatingProxy {
 
   case class ProxiedRequest(req: WSRequest)
   case class ProxiedResponse(res: WSResponse)
-  case object UnableToAuthenticate
+  case object AuthenticationFailed
 }
-class CityIQAuthenticatingProxy @Inject() (ws: WSClient)
+class CityIQAuthenticatingProxyActor @Inject()(ws: WSClient)
     extends Actor with ActorLogging with Stash {
-  import CityIQAuthenticatingProxy._
+  import CityIQAuthenticatingProxyActor._
 
   private implicit val ec: ExecutionContext = context.dispatcher
 
@@ -35,14 +36,18 @@ class CityIQAuthenticatingProxy @Inject() (ws: WSClient)
   authenticate()
 
   private lazy val authenticating: Receive = {
-    case authResponse: WSResponse =>
-      (authResponse.json \ "access_token").toOption match {
+    case okResponse: WSResponse if okResponse.status == Status.OK =>
+      (okResponse.json \ "access_token").toOption match {
         case Some(accessTokenJs: JsValue) =>
           context.become(authenticated(accessTokenJs.as[String]))
 
         case None =>
           context.become(authenticationFailed)
       }
+      unstashAll()
+
+    case _: WSResponse =>
+      context.become(authenticationFailed)
       unstashAll()
 
     case _: ProxiedRequest =>
@@ -54,13 +59,13 @@ class CityIQAuthenticatingProxy @Inject() (ws: WSClient)
       val respFut: Future[WSResponse] =
         req.addHttpHeaders("Authorization" -> s"Bearer ${accessToken}").get()
       respFut.foreach { resp: WSResponse =>
-        if (resp.status == 401) authenticate()
+        if (resp.status == Status.UNAUTHORIZED) authenticate()
       }
-      respFut.pipeTo(sender())
+      respFut.map(ProxiedResponse).pipeTo(sender())
   }
 
   private val authenticationFailed: Receive = {
-    case _ => sender() ! UnableToAuthenticate
+    case _ => sender() ! AuthenticationFailed
   }
 
   override def receive: Receive = PartialFunction.empty

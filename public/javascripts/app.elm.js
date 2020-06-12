@@ -10016,7 +10016,7 @@ var _user$project$Main$getAssetMetadataCmd = F2(
 					A2(_elm_lang$core$Json_Decode$field, 'coordinates', _elm_lang$core$Json_Decode$string));
 				var url = A2(
 					_elm_lang$core$Basics_ops['++'],
-					'/proxy/https://sandiego.cityiq.io/api/v2/metadata/assets/search?bbox=',
+					'/cityiq-proxy/api/v2/metadata/assets/search?bbox=',
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						_elm_lang$core$Basics$toString(bounds.north),
@@ -10277,7 +10277,7 @@ var _user$project$Main$update = F2(
 								}();
 								var url = A2(
 									_elm_lang$core$Basics_ops['++'],
-									'/proxy/https://sandiego.cityiq.io/api/v2/event/assets/',
+									'/cityiq-proxy/api/v2/event/assets/',
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										_p10._0.assetUid,

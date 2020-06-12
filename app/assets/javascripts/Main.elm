@@ -138,7 +138,7 @@ getAssetMetadataCmd filteredAssetType bounds =
         (let
             url : String
             url =
-                "/proxy/https://sandiego.cityiq.io/api/v2/metadata/assets/search?bbox="
+                "/cityiq-proxy/api/v2/metadata/assets/search?bbox="
                     ++ toString bounds.north
                     ++ ":"
                     ++ toString bounds.west
@@ -337,7 +337,7 @@ update msg model =
                         (let
                             url : String
                             url =
-                                "/proxy/https://sandiego.cityiq.io/api/v2/event/assets/"
+                                "/cityiq-proxy/api/v2/event/assets/"
                                     ++ assetUid
                                     ++ "/events?eventType="
                                     ++ eventType

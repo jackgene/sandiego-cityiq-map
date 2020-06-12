@@ -3,10 +3,10 @@ package modules
 import com.google.inject.AbstractModule
 import play.api.libs.concurrent.AkkaGuiceSupport
 
-import actors.CityIQAuthenticatingProxy
+import actors.CityIQAuthenticatingProxyActor
 
 class ActorsModule extends AbstractModule with AkkaGuiceSupport {
   override def configure(): Unit = {
-    bindActor[CityIQAuthenticatingProxy]("cityiq-auth-proxy")
+    bindActor[CityIQAuthenticatingProxyActor]("cityiq-auth-proxy")
   }
 }

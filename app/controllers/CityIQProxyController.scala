@@ -1,6 +1,6 @@
 package controllers
 
-import actors.CityIQAuthenticatingProxy
+import actors.CityIQAuthenticatingProxyActor
 import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
@@ -12,17 +12,13 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 @Singleton
-class Application @Inject()
+class CityIQProxyController @Inject()
     (@Named("cityiq-auth-proxy") cityIqAuthProxy: ActorRef, ws: WSClient, cc: ControllerComponents)
     (implicit ec: ExecutionContext)
     extends AbstractController(cc) {
   private implicit val AskTimeout: Timeout = 30.seconds
 
-  def index: Action[AnyContent] = Action {
-    Ok(views.html.index())
-  }
-
-  def proxy(url: String): Action[AnyContent] = Action.async { request: Request[AnyContent] =>
+  def proxy(path: String): Action[AnyContent] = Action.async { request: Request[AnyContent] =>
     val proxiedHeaders: Seq[(String,String)] =
       request.headers.toSimpleMap.
       filter {
@@ -30,12 +26,13 @@ class Application @Inject()
       }.
       toSeq
     (
-      cityIqAuthProxy ? CityIQAuthenticatingProxy.ProxiedRequest(
-        ws.url(s"${url}?${request.rawQueryString}").withHttpHeaders(proxiedHeaders: _*)
+      cityIqAuthProxy ? CityIQAuthenticatingProxyActor.ProxiedRequest(
+        ws.url(s"https://sandiego.cityiq.io/${path}?${request.rawQueryString}").
+          withHttpHeaders(proxiedHeaders: _*)
       )
     ).
     map {
-      case response: WSResponse =>
+      case CityIQAuthenticatingProxyActor.ProxiedResponse(response: WSResponse) =>
         val contentType: Option[String] =
           response.headers.get("Content-Type").flatMap(_.headOption)
         val result: Result = Status(response.status)(response.body)
@@ -43,6 +40,12 @@ class Application @Inject()
           case Some(contentType: String) => result.as(contentType)
           case None => result
         }
+
+      case CityIQAuthenticatingProxyActor.AuthenticationFailed =>
+        Unauthorized(
+          "CityIQ authorization failed, refresh client secret from " +
+          "https://www.sandiego.gov/sustainability/energy-and-water-efficiency/programs-projects/smart-city"
+        )
     }
   }
 }
