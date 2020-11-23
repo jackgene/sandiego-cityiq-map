@@ -18,10 +18,10 @@
   </appender>
 
   <logger name="play" level="INFO" />
-  <logger name="application" level="INFO" />
-  <logger name="my.edu.clhs" level="INFO" />
+  <logger name="akka" level="INFO" />
+  <logger name="actors" level="INFO" />
 
-  <root level="INFO">
+  <root level="WARN">
     <appender-ref ref="ASYNCSTDOUT" />
   </root>
 
