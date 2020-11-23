@@ -27,6 +27,7 @@ class CityIQAuthenticatingProxyActor @Inject()(ws: WSClient)
   private implicit val ec: ExecutionContext = context.dispatcher
 
   private def authenticate(): Unit = {
+    log.info("Authenticating...")
     context.become(authenticating)
     ws.url(TokenUrl).
       withAuth(BasicAuthUsername, BasicAuthPassword, WSAuthScheme.BASIC).
@@ -39,14 +40,17 @@ class CityIQAuthenticatingProxyActor @Inject()(ws: WSClient)
     case okResponse: WSResponse if okResponse.status == Status.OK =>
       (okResponse.json \ "access_token").toOption match {
         case Some(accessTokenJs: JsValue) =>
+          log.info("Authentication succeeded.")
           context.become(authenticated(accessTokenJs.as[String]))
 
         case None =>
+          log.info("Authentication failed (OK response, bad payload).")
           context.become(authenticationFailed)
       }
       unstashAll()
 
     case _: WSResponse =>
+      log.info("Authentication failed (Non-OK response).")
       context.become(authenticationFailed)
       unstashAll()
 
@@ -56,6 +60,7 @@ class CityIQAuthenticatingProxyActor @Inject()(ws: WSClient)
 
   private def authenticated(accessToken: String): Receive = {
     case ProxiedRequest(req: WSRequest) =>
+      log.info("Proxying CityIQ request...")
       val respFut: Future[WSResponse] =
         req.addHttpHeaders("Authorization" -> s"Bearer ${accessToken}").get()
       respFut.foreach { resp: WSResponse =>
