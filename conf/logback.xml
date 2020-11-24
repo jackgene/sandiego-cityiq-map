@@ -17,11 +17,7 @@
     <appender-ref ref="STDOUT" />
   </appender>
 
-  <logger name="play" level="INFO" />
-  <logger name="akka" level="INFO" />
-  <logger name="actors" level="INFO" />
-
-  <root level="WARN">
+  <root level="INFO">
     <appender-ref ref="ASYNCSTDOUT" />
   </root>
 
