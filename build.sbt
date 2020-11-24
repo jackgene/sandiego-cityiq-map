@@ -9,6 +9,7 @@ scalaVersion := "2.13.1"
 
 libraryDependencies += guice
 libraryDependencies += ws
+libraryDependencies += "com.typesafe.akka" %% "akka-slf4j" % "2.6.3"
 
 val elmMake = taskKey[Seq[File]]("elm-make")
 
